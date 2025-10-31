@@ -1,13 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon } from "./icons/Icons";
-
-// Only keep admin logic if you need special admin links
-const adminEmails = ["abcd@gmail.com", "defg@gmail.com"];
 
 const Header = ({ currentUser, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const navigate = useNavigate();
 
   const adminEmails = [
     "admin1@example.com",
@@ -16,6 +14,7 @@ const Header = ({ currentUser, onLogout }) => {
     "admin4@example.com",
     "admin5@example.com",
   ];
+
   const isUserAdmin = currentUser && adminEmails.includes(currentUser.email);
 
   React.useEffect(() => {
@@ -26,15 +25,21 @@ const Header = ({ currentUser, onLogout }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Handle navigation with category
+  const handleCategoryClick = (category) => {
+    setIsMenuOpen(false); // Close mobile menu if open
+    navigate(`/blog?category=${category}`);
+  };
+
   // Main navigation links (always visible)
   const navLinks = (
     <>
-      <Link
-        to="/blog?category=Leadership"
-        className="py-2 hover:text-gray-500 transition-colors"
+      <button
+        onClick={() => handleCategoryClick("Leadership")}
+        className="py-2 hover:text-gray-500 transition-colors cursor-pointer bg-none border-none text-brand-dark font-medium"
       >
         Leadership
-      </Link>
+      </button>
       <Link
         to="/community"
         className="py-2 hover:text-gray-500 transition-colors"
@@ -79,13 +84,17 @@ const Header = ({ currentUser, onLogout }) => {
         <Link
           to="/upload-article"
           className="text-brand-dark hover:text-gray-500 font-medium pt-4"
+          onClick={() => setIsMenuOpen(false)}
         >
           Upload Article
         </Link>
       )}
       <button
-        onClick={onLogout}
-        className="bg-brand-dark text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors font-semibold mt-2"
+        onClick={() => {
+          setIsMenuOpen(false);
+          onLogout();
+        }}
+        className="bg-brand-dark text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors font-semibold mt-2 w-full"
       >
         Logout
       </button>

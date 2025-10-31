@@ -17,13 +17,20 @@ import FaqPage from "./components/FaqPage";
 import LoginPage from "./components/LoginPage";
 import UploadArticlePage from "./components/UploadArticlePage";
 import BlogPostWrapper from "./components/BlogPostWrapper";
+import Dashboard from "./components/Dashboard";
 
 const App = () => {
-  const handleLogout = () => {}; // empty
   const handleDeletePost = () => {}; // empty
 
   const [posts, setPosts] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null); // If you're using React state
+    navigate("/login"); // Or wherever you want to redirect after logout
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -68,6 +75,7 @@ const App = () => {
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </main>
         <Footer />

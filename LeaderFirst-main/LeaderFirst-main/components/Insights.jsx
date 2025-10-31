@@ -12,24 +12,117 @@ const shuffleArray = (array = []) => {
   return newArray;
 };
 
-const Insights = ({ posts = [] }) => {
+// Helper to format relative time
+const getRelativeTime = (date) => {
+  const now = new Date();
+  const published = new Date(date);
+  const diffMs = now - published;
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffHours < 1) return "JUST NOW";
+  if (diffHours < 24)
+    return `ABOUT ${diffHours} HOUR${diffHours > 1 ? "S" : ""} AGO`;
+  if (diffDays === 1) return "ABOUT 1 DAY AGO";
+  return `ABOUT ${diffDays} DAYS AGO`;
+};
+
+// Helper to extract text excerpt from HTML
+const getExcerpt = (htmlContent, maxLength = 150) => {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = htmlContent;
+  const text = tempDiv.textContent || tempDiv.innerText || "";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+};
+
+// Fallback image component
+const FallbackImage = ({ className, alt }) => (
+  <div
+    className={`${className} bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center`}
+  >
+    <span className="text-gray-600 text-sm font-medium">
+      {alt || "No Image"}
+    </span>
+  </div>
+);
+
+const Insights = () => {
+  const [articles, setArticles] = useState([]);
   const [shuffledArticles, setShuffledArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [imageErrors, setImageErrors] = useState({});
 
-  // Shuffle posts when they change
+  // Fetch articles from API
   useEffect(() => {
-    if (posts && posts.length >= 7) {
-      setShuffledArticles(shuffleArray(posts));
-    } else {
-      setShuffledArticles([]);
-    }
-  }, [posts]);
+    const fetchArticles = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/articles");
+        const data = await res.json();
+        console.log("Fetched articles:", data);
 
-  // Loading if not enough articles
+        if (data.data && Array.isArray(data.data)) {
+          setArticles(data.data);
+
+          // Shuffle if we have at least 7 articles
+          if (data.data.length >= 7) {
+            setShuffledArticles(shuffleArray(data.data));
+          } else {
+            setShuffledArticles(data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+        setError("Failed to load articles");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  // Handle image error
+  const handleImageError = (articleId) => {
+    setImageErrors((prev) => ({ ...prev, [articleId]: true }));
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <section className="py-20 bg-[#FBF9F6]">
+        <div className="container mx-auto px-6 max-w-7xl text-center">
+          <div className="text-2xl font-semibold text-gray-600">
+            Loading insights...
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-20 bg-[#FBF9F6]">
+        <div className="container mx-auto px-6 max-w-7xl text-center">
+          <div className="text-xl text-red-600">{error}</div>
+        </div>
+      </section>
+    );
+  }
+
+  // Not enough articles
   if (!shuffledArticles || shuffledArticles.length < 7) {
     return (
       <section className="py-20 bg-[#FBF9F6]">
         <div className="container mx-auto px-6 max-w-7xl text-center">
-          Loading insights...
+          <div className="text-xl text-gray-600">
+            {shuffledArticles.length === 0
+              ? "No articles published yet."
+              : `Only ${shuffledArticles.length} article${
+                  shuffledArticles.length > 1 ? "s" : ""
+                } available. Need at least 7 for the full layout.`}
+          </div>
         </div>
       </section>
     );
@@ -42,22 +135,22 @@ const Insights = ({ posts = [] }) => {
 
   const latestArticles = [
     {
-      time: "ABOUT 5 HOURS AGO",
+      time: getRelativeTime(shuffledArticles[3].publishedAt),
       title: shuffledArticles[3].title,
       _id: shuffledArticles[3]._id,
     },
     {
-      time: "ABOUT 1 DAY AGO",
+      time: getRelativeTime(shuffledArticles[4].publishedAt),
       title: shuffledArticles[4].title,
       _id: shuffledArticles[4]._id,
     },
     {
-      time: "ABOUT 2 DAYS AGO",
+      time: getRelativeTime(shuffledArticles[5].publishedAt),
       title: shuffledArticles[5].title,
       _id: shuffledArticles[5]._id,
     },
     {
-      time: "ABOUT 3 DAYS AGO",
+      time: getRelativeTime(shuffledArticles[6].publishedAt),
       title: shuffledArticles[6].title,
       _id: shuffledArticles[6]._id,
     },
@@ -82,11 +175,20 @@ const Insights = ({ posts = [] }) => {
               className="cursor-pointer group block focus:outline-none"
             >
               <div className="relative overflow-hidden rounded-lg shadow-md mb-4">
-                <img
-                  src={leftTopArticle.imageUrl}
-                  alt={leftTopArticle.title}
-                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                {leftTopArticle.thumbnail?.url &&
+                !imageErrors[leftTopArticle._id] ? (
+                  <img
+                    src={leftTopArticle.thumbnail.url}
+                    alt={leftTopArticle.thumbnail.alt || leftTopArticle.title}
+                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={() => handleImageError(leftTopArticle._id)}
+                  />
+                ) : (
+                  <FallbackImage
+                    className="w-full h-48"
+                    alt={leftTopArticle.title}
+                  />
+                )}
                 <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white p-2 text-xs font-bold uppercase">
                   The Leaders First
                 </div>
@@ -95,6 +197,7 @@ const Insights = ({ posts = [] }) => {
                 {leftTopArticle.title}
               </h3>
             </Link>
+
             <div className="border-t border-gray-200 pt-8">
               <Link
                 to={`/blog/${leftBottomArticle._id}`}
@@ -109,27 +212,47 @@ const Insights = ({ posts = [] }) => {
                   </h4>
                 </div>
                 <div className="relative flex-shrink-0">
-                  <img
-                    src={leftBottomArticle.imageUrl}
-                    alt={leftBottomArticle.title}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
+                  {leftBottomArticle.thumbnail?.url &&
+                  !imageErrors[leftBottomArticle._id] ? (
+                    <img
+                      src={leftBottomArticle.thumbnail.url}
+                      alt={
+                        leftBottomArticle.thumbnail.alt ||
+                        leftBottomArticle.title
+                      }
+                      className="w-24 h-24 object-cover rounded-md"
+                      onError={() => handleImageError(leftBottomArticle._id)}
+                    />
+                  ) : (
+                    <FallbackImage
+                      className="w-24 h-24 rounded-md"
+                      alt={leftBottomArticle.title}
+                    />
+                  )}
                 </div>
               </Link>
             </div>
           </div>
 
-          {/* Center Column */}
+          {/* Center Column - Main Article */}
           <Link
             to={`/blog/${mainArticle._id}`}
             className="lg:col-span-2 cursor-pointer group block focus:outline-none"
           >
             <div className="relative overflow-hidden rounded-lg shadow-lg mb-4">
-              <img
-                src={mainArticle.imageUrl}
-                alt={mainArticle.title}
-                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              {mainArticle.thumbnail?.url && !imageErrors[mainArticle._id] ? (
+                <img
+                  src={mainArticle.thumbnail.url}
+                  alt={mainArticle.thumbnail.alt || mainArticle.title}
+                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={() => handleImageError(mainArticle._id)}
+                />
+              ) : (
+                <FallbackImage
+                  className="w-full h-96"
+                  alt={mainArticle.title}
+                />
+              )}
             </div>
             <p className="text-sm font-bold uppercase tracking-wider text-blue-700 mb-2">
               {mainArticle.category}
@@ -137,13 +260,19 @@ const Insights = ({ posts = [] }) => {
             <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 leading-tight group-hover:text-brand-teal transition-colors">
               {mainArticle.title}
             </h2>
-            <p className="text-gray-600 mb-4">{mainArticle.excerpt}</p>
+            <p className="text-gray-600 mb-4">
+              {getExcerpt(mainArticle.content)}
+            </p>
             <p className="text-xs font-semibold uppercase text-gray-500">
-              {mainArticle.author}
+              By{" "}
+              {mainArticle.author?.name ||
+                mainArticle.author?.email ||
+                "Anonymous"}{" "}
+              • {getRelativeTime(mainArticle.publishedAt)}
             </p>
           </Link>
 
-          {/* Right Column */}
+          {/* Right Column - Latest Articles */}
           <div className="lg:col-span-1">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-2xl font-bold text-gray-900">Latest</h3>
@@ -157,7 +286,7 @@ const Insights = ({ posts = [] }) => {
             <div className="space-y-4">
               {latestArticles.map((article, index) => (
                 <Link
-                  key={index}
+                  key={article._id}
                   to={`/blog/${article._id}`}
                   className="border-b border-gray-200 pb-4 last:border-b-0 cursor-pointer group block focus:outline-none"
                 >
@@ -176,19 +305,30 @@ const Insights = ({ posts = [] }) => {
         {/* Bottom Grid */}
         <div className="mt-16 pt-12 border-t border-gray-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {bottomGridArticles.map((article, index) => (
+            {bottomGridArticles.map((article) => (
               <Link
-                key={index}
+                key={article._id}
                 to={`/blog/${article._id}`}
                 className="cursor-pointer group block focus:outline-none"
               >
                 <div className="relative overflow-hidden rounded-lg shadow-md mb-4">
-                  <img
-                    src={article.imageUrl}
-                    alt={article.title}
-                    className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                  {article.thumbnail?.url && !imageErrors[article._id] ? (
+                    <img
+                      src={article.thumbnail.url}
+                      alt={article.thumbnail.alt || article.title}
+                      className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
+                      onError={() => handleImageError(article._id)}
+                    />
+                  ) : (
+                    <FallbackImage
+                      className="w-full h-40"
+                      alt={article.title}
+                    />
+                  )}
                 </div>
+                <p className="text-xs font-semibold text-blue-700 uppercase mb-1">
+                  {article.category}
+                </p>
                 <h4 className="font-semibold text-gray-800 group-hover:text-brand-teal transition-colors">
                   {article.title}
                 </h4>

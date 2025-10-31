@@ -1,91 +1,301 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+export const InsightCard = ({
+  id,
+  imageUrl,
+  category,
+  title,
+  excerpt,
+  author,
+  date,
+  onClick,
+  imageError,
+  onImageError,
+}) => (
+  <div
+    className={`bg-white rounded-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+      onClick ? "cursor-pointer" : ""
+    }`}
+    onClick={onClick}
+    role={onClick ? "button" : "article"}
+    tabIndex={onClick ? 0 : -1}
+    onKeyDown={(e) => {
+      if ((e.key === "Enter" || e.key === " ") && onClick) {
+        e.preventDefault();
+        onClick();
+      }
+    }}
+  >
+    {/* Image Container */}
+    <div className="relative overflow-hidden h-56 bg-gradient-to-br from-gray-200 to-gray-300">
+      {imageUrl && !imageError ? (
+        <img
+          src={imageUrl}
+          alt={title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={onImageError}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
+          <span className="text-gray-600 font-bold text-4xl">
+            {title.substring(0, 1)}
+          </span>
+        </div>
+      )}
+    </div>
+
+    {/* Content Container */}
+    <div className="p-6">
+      {/* Category */}
+      <p className="text-brand-teal font-semibold uppercase tracking-wider text-sm mb-2">
+        {category}
+      </p>
+
+      {/* Title */}
+      <h3 className="text-xl font-bold text-brand-dark mb-3 h-14 overflow-hidden line-clamp-2 group-hover:text-brand-teal transition-colors">
+        {title}
+      </h3>
+
+      {/* Excerpt */}
+      <p className="text-gray-600 text-sm h-20 overflow-hidden line-clamp-3">
+        {excerpt}
+      </p>
+
+      {/* Footer with Author and Date */}
+      {(author || date) && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            {author && (
+              <span className="font-medium text-gray-700">{author}</span>
+            )}
+            {date && <span>{date}</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+);
 
 const BlogPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
+  // Get category from URL query parameter
+  const category = searchParams.get("category");
+
+  // Fetch articles from API - WITH CATEGORY FILTER
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    const fetchArticles = async () => {
+      setLoading(true);
+      setError(null);
 
-    fetch("http://localhost:8080/api/articles")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch articles");
-        return res.json();
-      })
-      .then((data) => {
+      try {
+        // Build API URL with category filter if present
+        let apiUrl = "http://localhost:8080/api/articles";
+
+        if (category) {
+          // Only fetch articles from that specific category
+          apiUrl = `http://localhost:8080/api/articles/category/${category}`;
+        }
+
+        console.log("📡 Fetching from:", apiUrl);
+
+        const res = await fetch(apiUrl);
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch articles");
+        }
+
+        const data = await res.json();
+        console.log("✅ Fetched articles:", data);
+
         setPosts(data.data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
         setError(err.message || "Failed to load articles");
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
+    fetchArticles();
+  }, [category]); // Re-fetch when category changes
+
+  // Extract text excerpt from HTML content
+  const getExcerpt = (htmlContent, maxLength = 150) => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+    const text = tempDiv.textContent || tempDiv.innerText || "";
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  };
+
+  // Format date
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Handle image error
+  const handleImageError = (postId) => {
+    setImageErrors((prev) => ({ ...prev, [postId]: true }));
+  };
+
+  // Page title and subtitle
+  const pageTitle = category ? `${category} Articles` : "Insights & Articles";
+  const pageSubtitle = category
+    ? `Exploring topics in ${category}.`
+    : "Thoughts on leadership, performance, and personal growth.";
+
+  // Navigate to post detail
+  const handleNavigateToPost = (postId) => {
+    navigate(`/blog/${postId}`);
+  };
+
+  // Clear category filter
+  const handleClearCategory = () => {
+    navigate("/blog");
+  };
+
+  // Loading state
   if (loading) {
     return (
-      <div className="text-center py-10 text-gray-500">Loading articles...</div>
+      <div className="animate-fade-in">
+        <section className="py-20">
+          <div className="container mx-auto px-6">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-teal"></div>
+              <p className="mt-4 text-lg text-gray-600">Loading articles...</p>
+            </div>
+          </div>
+        </section>
+      </div>
     );
   }
 
+  // Error state
   if (error) {
-    return <div className="text-center py-10 text-red-600">{error}</div>;
-  }
-
-  if (!posts.length) {
     return (
-      <div className="text-center py-10 text-gray-500">No articles found.</div>
+      <div className="animate-fade-in">
+        <section className="py-20">
+          <div className="container mx-auto px-6">
+            <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
+              <div className="text-red-600 text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-red-600 mb-2">
+                Error Loading Articles
+              </h2>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-brand-teal text-white px-6 py-3 rounded-lg hover:bg-brand-teal-dark transition-colors font-semibold"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-6 py-10">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post, idx) => (
-          <div
-            key={idx}
-            onClick={() => navigate(`/blog/${post._id}`)}
-            className="bg-white shadow-md rounded-lg p-6 flex flex-col cursor-pointer transition hover:shadow-lg"
-            style={{ width: "320px", minHeight: "420px", maxHeight: "420px" }}
-          >
-            <img
-              src={post.imageUrl}
-              alt={post.title}
-              className="w-full h-40 object-cover rounded mb-4"
-              style={{ minHeight: "160px" }}
-            />
-            <h3
-              className="mt-2 text-xl font-bold text-gray-900"
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                minHeight: "32px",
-              }}
-              title={post.title}
-            >
-              {post.title}
-            </h3>
-            <div
-              className="text-gray-600 mt-2"
-              style={{
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                WebkitLineClamp: 3,
-                minHeight: "60px",
-                maxHeight: "60px",
-              }}
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+    <div className="animate-fade-in">
+      <section className="py-20">
+        <div className="container mx-auto px-6">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold text-brand-dark mb-4 font-serif">
+              {pageTitle}
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg text-gray-600">
+              {pageSubtitle}
+            </p>
+
+            {/* Category Filter Badge */}
+            {category && (
+              <div className="mt-8 flex items-center justify-center gap-3">
+                <span className="text-gray-600 font-medium">Filtered by:</span>
+                <span className="inline-flex items-center gap-2 bg-brand-teal text-white px-4 py-2 rounded-full font-semibold">
+                  {category}
+                  <button
+                    onClick={handleClearCategory}
+                    className="hover:text-gray-100 transition-colors ml-1 font-bold cursor-pointer text-lg leading-none"
+                    title="Clear filter"
+                    aria-label="Clear category filter"
+                  >
+                    ✕
+                  </button>
+                </span>
+              </div>
+            )}
           </div>
-        ))}
-      </div>
+
+          {/* Articles Grid */}
+          {posts.length > 0 ? (
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post) => (
+                  <InsightCard
+                    key={post._id}
+                    id={post._id}
+                    imageUrl={post.thumbnail?.url || ""}
+                    category={post.category}
+                    title={post.title}
+                    excerpt={getExcerpt(post.content)}
+                    author={post.author?.name || post.author?.email}
+                    date={formatDate(post.publishedAt)}
+                    imageError={imageErrors[post._id]}
+                    onImageError={() => handleImageError(post._id)}
+                    onClick={() => handleNavigateToPost(post._id)}
+                  />
+                ))}
+              </div>
+
+              {/* Article Count */}
+              <div className="mt-12 text-center text-gray-600">
+                <p>
+                  Showing{" "}
+                  <span className="font-semibold text-brand-teal">
+                    {posts.length}
+                  </span>{" "}
+                  {posts.length === 1 ? "article" : "articles"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="col-span-full text-center text-gray-500 py-10">
+              <h2 className="text-2xl font-bold text-brand-dark mb-2">
+                {category
+                  ? `No ${category} articles found`
+                  : "No articles found"}
+              </h2>
+              <p className="text-gray-600">
+                {category
+                  ? `We're constantly working on new content for the "${category}" category. Please check back later!`
+                  : `We're constantly working on new content. Please check back later!`}
+              </p>
+              {category && (
+                <button
+                  onClick={handleClearCategory}
+                  className="mt-4 text-brand-teal hover:text-brand-teal-dark font-semibold transition-colors"
+                >
+                  ← View all articles
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
