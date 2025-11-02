@@ -127,7 +127,7 @@ const BlogPostLayout = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/articles/${articleId}`,
+        `https://leader-first.onrender.com/api/articles/${articleId}`,
         {
           method: "DELETE",
           headers: {
@@ -187,7 +187,7 @@ const BlogPostLayout = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/articles/${articleId}`,
+        `https://leader-first.onrender.com/api/articles/${articleId}`,
         {
           method: "PUT",
           headers: {

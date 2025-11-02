@@ -97,11 +97,11 @@ const BlogPage = () => {
 
       try {
         // Build API URL with category filter if present
-        let apiUrl = "http://localhost:8080/api/articles";
+        let apiUrl = "https://leader-first.onrender.com/api/articles";
 
         if (category) {
           // Only fetch articles from that specific category
-          apiUrl = `http://localhost:8080/api/articles/category/${category}`;
+          apiUrl = `https://leader-first.onrender.com/api/articles/category/${category}`;
         }
 
         console.log("📡 Fetching from:", apiUrl);

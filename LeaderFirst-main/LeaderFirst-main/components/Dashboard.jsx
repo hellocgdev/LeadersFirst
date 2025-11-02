@@ -20,7 +20,7 @@ const Dashboard = () => {
     }
 
     // Fetch articles with auth token
-    fetch("http://localhost:8080/api/articles", {
+    fetch("https://leader-first.onrender.com/api/articles", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
