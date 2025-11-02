@@ -57,7 +57,9 @@ const Insights = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/articles");
+        const res = await fetch(
+          "https://leader-first.onrender.com/api/articles"
+        );
         const data = await res.json();
         console.log("Fetched articles:", data);
 

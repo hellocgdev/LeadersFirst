@@ -19,7 +19,9 @@ const BlogPostWrapper = () => {
       setError("");
 
       try {
-        const res = await fetch(`http://localhost:8080/api/articles/${id}`);
+        const res = await fetch(
+          `https://leader-first.onrender.com/api/articles/${id}`
+        );
 
         if (!res.ok) {
           if (res.status === 404) {
