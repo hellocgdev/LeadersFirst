@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -11,78 +11,157 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import Image from "@tiptap/extension-image";
-import mammoth from "mammoth";
 import JSZip from "jszip";
+import mammoth from "mammoth";
+import ArticlePreviewModal from "./ArticlePreviewModal"; // Import
 
-// MenuBar
-const MenuBar = React.memo(({ editor, onImageUpload }) => {
+// MenuBar Component
+const MenuBar = React.memo(({ editor, onImageSelect }) => {
   if (!editor) return null;
-
   return (
-    <div className="mb-2 flex flex-wrap gap-2 bg-gray-100 p-2 rounded sticky top-0 z-10">
+    <div className="flex flex-wrap gap-0.5 px-3 py-2.5 bg-white border-b border-gray-200 items-center">
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().toggleBold().run()}
+        className="p-1.5 hover:bg-gray-100 rounded text-sm font-semibold"
         title="Bold"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleBold().run();
+        }}
       >
         <b>B</b>
       </button>
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className="p-1.5 hover:bg-gray-100 rounded text-sm font-semibold"
         title="Italic"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleItalic().run();
+        }}
       >
         <i>I</i>
       </button>
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className="p-1.5 hover:bg-gray-100 rounded text-sm font-semibold"
         title="Underline"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleUnderline().run();
+        }}
       >
         <u>U</u>
       </button>
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().setHeading({ level: 2 }).run()}
-        title="Heading 2"
+        className="p-1.5 hover:bg-gray-100 rounded text-sm font-semibold"
+        title="Strikethrough"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleStrike().run();
+        }}
+      >
+        S
+      </button>
+
+      <div className="w-px bg-gray-300 h-5 mx-1"></div>
+
+      <button
+        className="p-1.5 hover:bg-gray-100 rounded text-xs font-bold"
+        title="Normal"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().setParagraph().run();
+        }}
+      >
+        Normal
+      </button>
+      <button
+        className="p-1.5 hover:bg-gray-100 rounded text-xs font-bold"
+        title="H1"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().setHeading({ level: 1 }).run();
+        }}
+      >
+        H1
+      </button>
+      <button
+        className="p-1.5 hover:bg-gray-100 rounded text-xs font-bold"
+        title="H2"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().setHeading({ level: 2 }).run();
+        }}
       >
         H2
       </button>
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className="p-1.5 hover:bg-gray-100 rounded text-xs font-bold"
+        title="H3"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().setHeading({ level: 3 }).run();
+        }}
+      >
+        H3
+      </button>
+
+      <div className="w-px bg-gray-300 h-5 mx-1"></div>
+
+      <button
+        className="p-1.5 hover:bg-gray-100 rounded"
         title="Bullet List"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleBulletList().run();
+        }}
       >
-        • List
+        •
       </button>
       <button
-        type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        title="Numbered List"
+        className="p-1.5 hover:bg-gray-100 rounded"
+        title="Ordered List"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().toggleOrderedList().run();
+        }}
       >
-        1. List
+        1.
       </button>
-      <button
-        type="button"
-        className="px-3 py-1 bg-blue-500 text-white hover:bg-blue-600 rounded text-sm"
-        onClick={onImageUpload}
-        title="Upload Image"
+
+      <div className="w-px bg-gray-300 h-5 mx-1"></div>
+
+      <label
+        className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+        title="Image"
       >
-        🖼️ Upload
-      </button>
+        🖼️
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onImageSelect}
+        />
+      </label>
       <button
-        type="button"
-        className="px-3 py-1 bg-gray-500 text-white hover:bg-gray-600 rounded text-sm"
-        onClick={() =>
-          editor.chain().focus().unsetAllMarks().clearNodes().run()
-        }
-        title="Clear Formatting"
+        className="p-1.5 hover:bg-gray-100 rounded"
+        title="Link"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          const url = prompt("Enter URL:");
+          if (url) editor.chain().focus().setLink({ href: url }).run();
+        }}
+      >
+        🔗
+      </button>
+
+      <div className="w-px bg-gray-300 h-5 mx-1"></div>
+
+      <button
+        className="p-1.5 hover:bg-gray-100 rounded text-xs text-gray-600"
+        title="Clear"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          editor.chain().focus().unsetAllMarks().clearNodes().run();
+        }}
       >
         Clear
       </button>
@@ -90,214 +169,179 @@ const MenuBar = React.memo(({ editor, onImageUpload }) => {
   );
 });
 
+// Main Component
 const UploadArticlePage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = token ? JSON.parse(localStorage.getItem("user") || "{}") : null;
   const isAdmin = user?.role === "admin";
 
+  // State
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [articleFile, setArticleFile] = useState(null);
+  const [labels, setLabels] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
-  const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState("");
-  const [thumbnailData, setThumbnailData] = useState(null);
   const [processingDocx, setProcessingDocx] = useState(false);
+  const [allArticles, setAllArticles] = useState([]);
+  const [showPreview, setShowPreview] = useState(false); // Preview state
+  const [publishedAt] = useState(() => {
+    const now = new Date();
+    return now.toLocaleString("en-GB", { hour12: false }).replace(",", "");
+  });
 
   const contentImageInputRef = useRef(null);
   const thumbnailInputRef = useRef(null);
   const docxInputRef = useRef(null);
+  const hasLoadedArticles = useRef(false);
 
+  // Editor
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        bold: false,
-        italic: false,
-        heading: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
-      }),
+      StarterKit,
       Bold,
       Italic,
       Underline,
-      Heading.configure({ levels: [2, 3] }),
+      Heading.configure({ levels: [1, 2, 3] }),
       Link,
       BulletList,
       OrderedList,
       ListItem,
-      Image.configure({
-        HTMLAttributes: {
-          class: "max-w-full h-auto rounded-lg my-4",
-        },
-      }),
+      Image,
     ],
     content: "",
   });
 
-  // Upload image to Cloudinary
-  const uploadImageToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append("image", file);
+  // Fetch articles ONLY ONCE
+  useEffect(() => {
+    if (!isAdmin || !token || hasLoadedArticles.current) return;
 
-    try {
-      const res = await fetch(
-        "http://localhost:8080/api/upload/content-image",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+    hasLoadedArticles.current = true;
+    const fetchArticles = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/articles", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAllArticles(data.data || []);
         }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        console.log("✅ Image uploaded:", data.url);
-        return data.url;
-      } else {
-        console.error("❌ Upload failed:", data.message);
-        return null;
+      } catch (err) {
+        console.error("Error fetching articles:", err);
       }
-    } catch (err) {
-      console.error("❌ Upload error:", err);
-      return null;
-    }
-  };
+    };
 
-  // Extract images from DOCX using JSZip
+    fetchArticles();
+  }, [isAdmin, token]);
+
+  // Extract and process images from DOCX
   const extractImagesFromDocx = async (arrayBuffer) => {
     try {
-      console.log("📦 Extracting images from DOCX...");
       const zip = new JSZip();
       const docxData = await zip.loadAsync(arrayBuffer);
+      const imageMap = {};
+      let uploadedCount = 0;
 
-      const uploadedImages = {};
-      let imageCounter = 0;
+      const mediaFolder = docxData.folder("word/media");
+      if (!mediaFolder) return imageMap;
 
-      // Get all files from media folder
-      docxData.folder("word/media").forEach((relativePath, file) => {
-        console.log("Found image in DOCX:", relativePath);
-      });
-
-      // Process each image in media folder
-      for (const [path, file] of Object.entries(
-        docxData.folder("word/media").files
-      )) {
+      for (const [path, file] of Object.entries(mediaFolder.files)) {
         if (path.includes("image")) {
           try {
-            imageCounter++;
+            uploadedCount++;
             const imageData = await file.async("blob");
-            console.log(`📸 Processing image ${imageCounter}:`, path);
-
-            // Create file with proper extension
-            const ext = path.split(".").pop();
-            const fileName = `docx-image-${Date.now()}-${imageCounter}.${ext}`;
-            const imageFile = new File([imageData], fileName, {
-              type: imageData.type,
-            });
-
-            // Upload to Cloudinary
-            console.log(`⬆️ Uploading ${fileName}...`);
-            const cloudinaryUrl = await uploadImageToCloudinary(imageFile);
-
-            if (cloudinaryUrl) {
-              uploadedImages[path] = cloudinaryUrl;
-              console.log(`✅ Image uploaded: ${cloudinaryUrl}`);
-            } else {
-              console.warn(`⚠️ Failed to upload ${fileName}`);
-            }
+            const fileName = path.split("/").pop();
+            const blobUrl = URL.createObjectURL(
+              new File([imageData], fileName, { type: imageData.type })
+            );
+            imageMap[fileName] = blobUrl;
+            console.log(`✅ Image ${uploadedCount} extracted: ${fileName}`);
           } catch (imgErr) {
-            console.error(`Error processing image ${path}:`, imgErr);
+            console.error(`Error processing image:`, imgErr);
           }
         }
       }
 
-      console.log(`📊 Total images found and processed: ${imageCounter}`);
-      console.log("📸 Uploaded images map:", uploadedImages);
-
-      return { uploadedImages, imageCount: imageCounter };
+      return imageMap;
     } catch (err) {
       console.error("❌ Image extraction error:", err);
-      throw new Error(`Failed to extract images: ${err.message}`);
+      return {};
     }
   };
 
   // Process DOCX file
   const handleDocxFile = async (file) => {
-    setArticleFile(file);
+    if (!file || !file.name.endsWith(".docx")) {
+      setError("❌ Please select a .docx file");
+      return;
+    }
+
     setProcessingDocx(true);
     setError("");
-    setSuccess("📄 Processing DOCX file...");
+    setSuccess("📄 Processing DOCX...");
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      console.log("📥 DOCX loaded, size:", arrayBuffer.byteLength);
 
-      // Extract images first
-      const { uploadedImages, imageCount } = await extractImagesFromDocx(
-        arrayBuffer
-      );
+      // Extract images
+      const imageMap = await extractImagesFromDocx(arrayBuffer);
+      const imageCount = Object.keys(imageMap).length;
+      console.log(`📊 Total images extracted: ${imageCount}`);
 
-      console.log(`Found ${imageCount} images in DOCX`);
-
-      // Convert DOCX to HTML with image replacement
+      // Convert DOCX to HTML
       const result = await mammoth.convertToHtml({ arrayBuffer });
 
       if (!result.value) {
         throw new Error("Could not extract content from DOCX");
       }
 
-      // Replace image paths with Cloudinary URLs
       let htmlContent = result.value;
 
-      // Replace embedded image references with uploaded URLs
-      Object.entries(uploadedImages).forEach(
-        ([originalPath, cloudinaryUrl]) => {
-          // Replace various image reference patterns
-          htmlContent = htmlContent.replace(
-            /src="[^"]*word\/media\/[^"]*"/g,
-            `src="${cloudinaryUrl}"`
-          );
-        }
-      );
+      // Replace image paths with blob URLs
+      Object.entries(imageMap).forEach(([docxPath, blobUrl]) => {
+        htmlContent = htmlContent.replace(
+          new RegExp(`word/media/${docxPath}`, "g"),
+          blobUrl
+        );
+      });
 
-      // If no images were found in src attributes, add them as paragraphs
-      if (imageCount > 0 && Object.keys(uploadedImages).length > 0) {
-        const imageUrls = Object.values(uploadedImages);
-        let imageHtml = imageUrls
-          .map(
-            (url) =>
-              `<p><img src="${url}" alt="Document image" class="max-w-full h-auto rounded-lg" /></p>`
-          )
-          .join("");
-
-        htmlContent = imageHtml + htmlContent;
-      }
-
-      console.log("📝 Setting editor content...");
       editor?.commands.setContent(htmlContent);
-
-      setSuccess(
-        `✅ DOCX processed! Extracted ${imageCount} image(s) and text content.`
-      );
-      setTimeout(() => setSuccess(""), 4000);
+      setSuccess(`✅ DOCX loaded! (${imageCount} images extracted)`);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("❌ DOCX processing error:", err);
-      setError(`❌ Error: ${err.message}`);
+      setError("❌ Error: " + err.message);
     } finally {
       setProcessingDocx(false);
     }
   };
 
-  // Drag and drop handlers
+  // Handle image selection
+  const handleContentImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const blobUrl = URL.createObjectURL(file);
+    editor?.chain().focus().setImage({ src: blobUrl }).run();
+    if (contentImageInputRef.current) contentImageInputRef.current.value = "";
+  };
+
+  // Handle thumbnail
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setThumbnailFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Drag and drop
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
@@ -313,7 +357,7 @@ const UploadArticlePage = () => {
         setError("❌ Please drag a .docx file");
       }
     },
-    [editor, token]
+    [editor]
   );
 
   const handleDragOver = useCallback((e) => {
@@ -328,102 +372,10 @@ const UploadArticlePage = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (file && file.name.endsWith(".docx")) {
-      handleDocxFile(file);
-    } else {
-      setError("❌ Please select a .docx file");
-    }
+    if (file) handleDocxFile(file);
   };
 
-  // Thumbnail upload
-  const handleThumbnailChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setThumbnailFile(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setThumbnailPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-
-    setError("⏳ Uploading thumbnail...");
-
-    try {
-      const formData = new FormData();
-      formData.append("thumbnail", file);
-
-      const res = await fetch("http://localhost:8080/api/upload/thumbnail", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setThumbnailData({
-          url: data.url,
-          publicId: data.publicId,
-          alt: title || "Article thumbnail",
-        });
-        setError("");
-        setSuccess("✅ Thumbnail uploaded!");
-        setTimeout(() => setSuccess(""), 2000);
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (err) {
-      setError(`❌ Thumbnail error: ${err.message}`);
-    }
-  };
-
-  // Content image upload
-  const handleContentImageUpload = () => {
-    contentImageInputRef.current?.click();
-  };
-
-  const handleContentImageChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingImage(true);
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch(
-        "http://localhost:8080/api/upload/content-image",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        editor?.chain().focus().setImage({ src: data.url }).run();
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError(`❌ Upload failed: ${err.message}`);
-    } finally {
-      setUploadingImage(false);
-      if (contentImageInputRef.current) {
-        contentImageInputRef.current.value = "";
-      }
-    }
-  };
-
-  // Submit form
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -432,16 +384,41 @@ const UploadArticlePage = () => {
     const content = editor?.getHTML() || "";
     const plainTextContent = editor?.getText().trim() || "";
     const titleValue = title.trim();
-    const categoryValue = category.trim();
+    const labelsValue = labels.trim();
 
-    if (!titleValue || !categoryValue || !plainTextContent || !thumbnailData) {
-      setError("❌ Please fill all required fields");
+    if (!titleValue || !labelsValue || !plainTextContent) {
+      setError("❌ Please fill: Title, Labels, and Content");
+      return;
+    }
+
+    if (!thumbnailFile) {
+      setError("❌ Please upload a thumbnail image");
       return;
     }
 
     setIsUploading(true);
 
     try {
+      // Upload thumbnail first
+      const thumbFormData = new FormData();
+      thumbFormData.append("thumbnail", thumbnailFile);
+
+      const thumbRes = await fetch(
+        "http://localhost:8080/api/upload/thumbnail",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: thumbFormData,
+        }
+      );
+
+      if (!thumbRes.ok) {
+        throw new Error("Thumbnail upload failed");
+      }
+
+      const thumbData = await thumbRes.json();
+
+      // Publish article
       const res = await fetch("http://localhost:8080/api/articles", {
         method: "POST",
         headers: {
@@ -450,9 +427,13 @@ const UploadArticlePage = () => {
         },
         body: JSON.stringify({
           title: titleValue,
-          content: content,
-          thumbnail: thumbnailData,
-          category: categoryValue,
+          content,
+          category: labelsValue,
+          thumbnail: {
+            url: thumbData.url,
+            publicId: thumbData.publicId,
+            alt: titleValue,
+          },
           publishedAt: new Date().toISOString(),
         }),
       });
@@ -462,19 +443,20 @@ const UploadArticlePage = () => {
       if (res.ok) {
         setSuccess("✅ Article published successfully!");
         setTitle("");
-        setCategory("");
+        setLabels("");
         setThumbnailFile(null);
         setThumbnailPreview("");
-        setThumbnailData(null);
         editor?.commands.setContent("");
-        setArticleFile(null);
 
-        setTimeout(() => navigate("/blog"), 1500);
+        // Add new article to list
+        setAllArticles((prev) => [data.data, ...prev]);
+
+        setTimeout(() => navigate("/dashboard"), 1500);
       } else {
-        setError(`❌ ${data.message}`);
+        setError(`❌ ${data.message || "Failed to publish"}`);
       }
     } catch (error) {
-      setError(`❌ Network error: ${error.message}`);
+      setError(`❌ Error: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -483,184 +465,256 @@ const UploadArticlePage = () => {
   if (!isAdmin) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-red-100 rounded text-center text-red-700">
-        Only admins can upload articles.
+        <p className="font-bold">Access Denied</p>
+        <p>Only admins can upload articles.</p>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in py-16 bg-brand-light-gray min-h-screen">
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8 md:p-12">
-          <div className="text-center mb-10">
-            <h1 className="font-serif text-4xl font-bold text-brand-dark">
-              Upload New Article
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Upload a DOCX file - all text and images will be extracted
-              automatically!
-            </p>
+    <div className="flex h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className="flex flex-col flex-1">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-4 border-b bg-white shadow-sm sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-gray-600 hover:text-gray-900 text-2xl transition"
+              title="Back"
+            >
+              ←
+            </button>
+            <span className="text-lg font-semibold text-gray-800">
+              The Leaders First
+            </span>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowPreview(true)}
+              className="px-4 py-1.5 text-gray-700 hover:bg-gray-100 rounded text-sm font-medium transition"
+            >
+              👁️ Preview
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isUploading || processingDocx}
+              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded px-6 py-1.5 font-semibold text-sm shadow-md transition"
+            >
+              {isUploading ? "Publishing..." : "Publish"}
+            </button>
+          </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Editor Content */}
+        <div className="flex-1 overflow-y-auto px-12 py-10">
+          <form onSubmit={handleSubmit} className="max-w-5xl mx-auto">
             {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Article Title *
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-teal"
-                placeholder="Enter article title"
-              />
-            </div>
+            <input
+              type="text"
+              className="bg-transparent outline-none border-0 border-b-2 border-[#f05c56] text-5xl font-serif mb-8 w-full placeholder:text-gray-300 focus:border-[#f05c56] transition py-2"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+            />
 
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
-              </label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-teal"
-                placeholder="e.g., Technology, Leadership"
-              />
-            </div>
-
-            {/* Thumbnail */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Thumbnail Image *
-                {thumbnailData && (
-                  <span className="text-green-600 ml-2">✓</span>
-                )}
-              </label>
-              <input
-                ref={thumbnailInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailChange}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => thumbnailInputRef.current?.click()}
-                className="px-4 py-2 bg-brand-teal text-white rounded hover:bg-brand-teal-dark"
-              >
-                Choose Thumbnail
-              </button>
-              {thumbnailPreview && (
-                <img
-                  src={thumbnailPreview}
-                  alt="Preview"
-                  className="mt-4 max-w-xs rounded-lg"
-                />
-              )}
-            </div>
-
-            {/* Editor */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Article Content *
-              </label>
+            {/* Toolbar + Editor */}
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm mb-6">
               <MenuBar
                 editor={editor}
-                onImageUpload={handleContentImageUpload}
+                onImageSelect={() => contentImageInputRef.current?.click()}
               />
               <input
                 ref={contentImageInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleContentImageChange}
+                onChange={handleContentImageSelect}
                 className="hidden"
               />
               <div
-                className={`border-2 rounded-md p-4 min-h-[500px] max-h-[700px] overflow-y-auto ${
-                  isDragOver
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 bg-white"
+                className={`bg-white min-h-[450px] border-t border-gray-200 transition ${
+                  isDragOver ? "ring-2 ring-blue-300 bg-blue-50" : ""
                 }`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
               >
-                <EditorContent editor={editor} />
-                {uploadingImage && (
-                  <p className="text-blue-600 text-sm mt-2">
-                    ⏳ Uploading image...
-                  </p>
-                )}
+                <EditorContent
+                  editor={editor}
+                  className="prose prose-sm max-w-none p-6"
+                />
               </div>
             </div>
 
-            {/* DOCX Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload DOCX Document (auto-extract text & images) *
-              </label>
-              <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
-                  isDragOver
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-              >
-                <input
-                  ref={docxInputRef}
-                  type="file"
-                  accept=".docx"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  disabled={processingDocx}
-                />
+            {/* DOCX Drop Area */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition ${
+                isDragOver
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-300 hover:border-gray-400"
+              }`}
+            >
+              <input
+                ref={docxInputRef}
+                type="file"
+                accept=".docx"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={processingDocx}
+              />
+              <div className="space-y-2">
+                <div className="text-3xl">📄</div>
                 <button
                   type="button"
                   onClick={() => docxInputRef.current?.click()}
                   disabled={processingDocx}
-                  className="text-brand-teal hover:text-brand-teal-dark font-semibold disabled:opacity-50"
+                  className="text-blue-600 hover:text-blue-700 font-semibold text-base disabled:opacity-50"
                 >
                   {processingDocx
                     ? "⏳ Processing DOCX..."
-                    : "📄 Click to select or drag DOCX file here"}
+                    : "Click to select DOCX file"}
                 </button>
-                {articleFile && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Selected: {articleFile.name}
-                  </p>
-                )}
+                <p className="text-sm text-gray-600">
+                  or drag and drop your DOCX file here
+                </p>
               </div>
             </div>
 
             {/* Messages */}
             {error && (
-              <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              <div className="p-4 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm mb-6 font-medium">
                 {error}
               </div>
             )}
             {success && (
-              <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+              <div className="p-4 bg-green-50 border border-green-300 text-green-700 rounded-lg text-sm mb-6 font-medium">
                 {success}
               </div>
             )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isUploading || processingDocx}
-              className="w-full py-3 bg-brand-dark text-white rounded-md hover:bg-gray-800 disabled:opacity-50 font-semibold transition"
-            >
-              {isUploading ? "Publishing..." : "Publish Article"}
-            </button>
           </form>
         </div>
       </div>
+
+      {/* Sidebar */}
+      <aside className="w-80 border-l border-gray-200 bg-white flex flex-col overflow-hidden shadow-sm">
+        <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
+          {/* Preview & Publish */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="flex items-center gap-1.5 flex-1 bg-gray-100 border border-gray-300 px-3 py-2 rounded hover:bg-gray-200 text-gray-700 font-medium text-sm transition"
+            >
+              👁️ Preview
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isUploading || processingDocx}
+              className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-3 py-2 rounded font-semibold text-sm shadow-md transition"
+            >
+              Publish
+            </button>
+          </div>
+
+          {/* Thumbnail Upload */}
+          <div className="space-y-2">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Thumbnail Image
+            </label>
+            <input
+              ref={thumbnailInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleThumbnailChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => thumbnailInputRef.current?.click()}
+              className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-medium text-sm transition"
+            >
+              Choose Image
+            </button>
+            {thumbnailPreview && (
+              <img
+                src={thumbnailPreview}
+                alt="Thumbnail"
+                className="w-full h-32 object-cover rounded-lg shadow-sm border border-gray-200"
+              />
+            )}
+          </div>
+
+          {/* Labels */}
+          <div className="space-y-2">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Labels
+            </label>
+            <input
+              type="text"
+              value={labels}
+              onChange={(e) => setLabels(e.target.value)}
+              placeholder="Separate by commas"
+              className="w-full border-0 border-b-2 border-gray-300 bg-transparent focus:ring-0 focus:border-brand-teal px-0 py-1.5 text-sm placeholder:text-gray-400 transition"
+            />
+            <p className="text-xs text-gray-400 pt-1">
+              No matching suggestions
+            </p>
+          </div>
+
+          {/* Published On */}
+          <div className="space-y-1">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Published on
+            </label>
+            <p className="text-sm text-gray-700 font-medium">{publishedAt}</p>
+          </div>
+
+          {/* Uploaded Articles */}
+          <div className="space-y-2">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Uploaded Articles ({allArticles.length})
+            </label>
+            <div className="space-y-2 max-h-56 overflow-y-auto">
+              {allArticles.length > 0 ? (
+                allArticles.map((article) => (
+                  <button
+                    key={article._id}
+                    type="button"
+                    onClick={() => navigate(`/blog/${article._id}`)}
+                    className="w-full text-left p-2.5 hover:bg-gray-100 rounded transition group"
+                  >
+                    <p className="text-xs font-semibold text-gray-800 group-hover:text-brand-teal truncate">
+                      {article.title}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      /blog-post-{article._id.slice(0, 8)}
+                    </p>
+                  </button>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 text-center py-6">
+                  No articles yet
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Preview Modal */}
+      <ArticlePreviewModal
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        title={title}
+        content={editor?.getHTML() || ""}
+        thumbnail={thumbnailPreview}
+        labels={labels}
+        publishedAt={publishedAt}
+        author={user?.email || "Anonymous"}
+      />
     </div>
   );
 };
