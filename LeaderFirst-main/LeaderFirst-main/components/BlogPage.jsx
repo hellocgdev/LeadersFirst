@@ -96,12 +96,14 @@ const BlogPage = () => {
       setError(null);
 
       try {
+        const baseUrl = import.meta.env.VITE_API_BASE;
+
         // Build API URL with category filter if present
-        let apiUrl = "https://leader-first.onrender.com/api/articles";
+        let apiUrl = `${baseUrl}/api/articles`;
 
         if (category) {
           // Only fetch articles from that specific category
-          apiUrl = `https://leader-first.onrender.com/api/articles/category/${category}`;
+          apiUrl = `${baseUrl}/api/articles/category/${category}`;
         }
 
         console.log("📡 Fetching from:", apiUrl);

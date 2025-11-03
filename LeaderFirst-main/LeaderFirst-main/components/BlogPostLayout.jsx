@@ -186,21 +186,20 @@ const BlogPostLayout = ({
     setIsUpdating(true);
 
     try {
-      const res = await fetch(
-        `https://leader-first.onrender.com/api/articles/${articleId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            title: updatedTitle,
-            content: updatedContent,
-            category: updatedCategory,
-          }),
-        }
-      );
+      const baseUrl = import.meta.env.VITE_API_BASE;
+
+      const res = await fetch(`${baseUrl}/api/articles/${articleId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: updatedTitle,
+          content: updatedContent,
+          category: updatedCategory,
+        }),
+      });
 
       const data = await res.json();
 

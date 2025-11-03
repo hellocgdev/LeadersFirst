@@ -222,12 +222,11 @@ const UploadArticlePage = () => {
     hasLoadedArticles.current = true;
     const fetchArticles = async () => {
       try {
-        const res = await fetch(
-          "https://leader-first.onrender.com/api/articles",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const baseUrl = import.meta.env.VITE_API_BASE;
+
+        const res = await fetch(`${baseUrl}/api/articles`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           setAllArticles(data.data || []);
@@ -405,15 +404,13 @@ const UploadArticlePage = () => {
       // Upload thumbnail first
       const thumbFormData = new FormData();
       thumbFormData.append("thumbnail", thumbnailFile);
+      const baseUrl = import.meta.env.VITE_API_BASE;
 
-      const thumbRes = await fetch(
-        "https://leader-first.onrender.com/api/upload/thumbnail",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: thumbFormData,
-        }
-      );
+      const thumbRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: thumbFormData,
+      });
 
       if (!thumbRes.ok) {
         throw new Error("Thumbnail upload failed");
@@ -422,27 +419,24 @@ const UploadArticlePage = () => {
       const thumbData = await thumbRes.json();
 
       // Publish article
-      const res = await fetch(
-        "https://leader-first.onrender.com/api/articles",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+      const res = await fetch(`${baseUrl}/api/articles`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: titleValue,
+          content,
+          category: labelsValue,
+          thumbnail: {
+            url: thumbData.url,
+            publicId: thumbData.publicId,
+            alt: titleValue,
           },
-          body: JSON.stringify({
-            title: titleValue,
-            content,
-            category: labelsValue,
-            thumbnail: {
-              url: thumbData.url,
-              publicId: thumbData.publicId,
-              alt: titleValue,
-            },
-            publishedAt: new Date().toISOString(),
-          }),
-        }
-      );
+          publishedAt: new Date().toISOString(),
+        }),
+      });
 
       const data = await res.json();
 

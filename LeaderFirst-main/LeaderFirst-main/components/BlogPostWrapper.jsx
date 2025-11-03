@@ -19,9 +19,9 @@ const BlogPostWrapper = () => {
       setError("");
 
       try {
-        const res = await fetch(
-          `https://leader-first.onrender.com/api/articles/${id}`
-        );
+        const baseUrl = import.meta.env.VITE_API_BASE;
+
+        const res = await fetch(`${baseUrl}/api/articles/${id}`);
 
         if (!res.ok) {
           if (res.status === 404) {
