@@ -18,7 +18,11 @@ const app = express();
 // 4. CORS - Update origin to match your React app
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Support both
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://leader-first.onrender.com",
+    ], // Support both
     credentials: true,
   })
 );
