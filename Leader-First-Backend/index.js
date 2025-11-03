@@ -22,7 +22,8 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://leader-first.onrender.com",
-    ], // Support both
+      "https://leader-first-kfvarztd4-rahul-kanojias-projects.vercel.app",
+    ],
     credentials: true,
   })
 );
