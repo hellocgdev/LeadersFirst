@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "@tailwindcss/vite": "^4.1.16",
     "@tiptap/extension-bold": "^3.9.1",
     "@tiptap/extension-bullet-list": "^3.9.1",
     "@tiptap/extension-heading": "^3.9.1",
@@ -28,7 +29,8 @@
     "quill": "^2.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

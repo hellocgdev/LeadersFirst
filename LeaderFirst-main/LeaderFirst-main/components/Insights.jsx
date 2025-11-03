@@ -57,9 +57,9 @@ const Insights = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const res = await fetch(
-          "https://leader-first.onrender.com/api/articles"
-        );
+        const baseUrl = import.meta.env.VITE_API_BASE;
+
+        const res = await fetch(`${baseUrl}/api/articles`);
         const data = await res.json();
         console.log("Fetched articles:", data);
 

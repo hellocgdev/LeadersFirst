@@ -18,9 +18,10 @@ const Dashboard = () => {
       navigate("/login");
       return;
     }
+    const baseUrl = import.meta.env.VITE_API_BASE;
 
     // Fetch articles with auth token
-    fetch("https://leader-first.onrender.com/api/articles", {
+    fetch(`${baseUrl}/api/articles`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -52,7 +53,9 @@ const Dashboard = () => {
     setDeleteSuccess("");
 
     try {
-      const res = await fetch(`http://localhost:8080/api/articles/${id}`, {
+      const baseUrl = import.meta.env.VITE_API_BASE;
+
+      const res = await fetch(`${baseUrl}/api/articles/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
