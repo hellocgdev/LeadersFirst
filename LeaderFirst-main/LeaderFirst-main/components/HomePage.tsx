@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Insights from "./Insights";
 import CtaSection from "./CtaSection";
-import OfferPopup from "./OfferPopup";
+import OfferPopup from "./OfferPopUp";
 
 const HomePage = ({ posts, currentUser }) => {
   const [showOffer, setShowOffer] = useState(false);
