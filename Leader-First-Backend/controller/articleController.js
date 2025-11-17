@@ -1,81 +1,76 @@
 import Article from "../models/article.js";
 import { cloudinary } from "../config/cloudinary.js";
+import { ensurePeriodWindow } from "../utils/billing.js";
+import User from "../models/user.js";
 
-// Create new article - author comes from authenticated user
+function ok(res, data, status = 200) {
+  return res.status(status).json({ success: true, data });
+}
+function fail(res, message, status = 400) {
+  return res.status(status).json({ success: false, message });
+}
+function parseDateOrNull(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export const create = async (req, res) => {
-  console.log("\n=== CREATE ARTICLE REQUEST ===");
-  console.log("Headers:", req.headers);
-  console.log(
-    "Auth user:",
-    req.user ? { id: req.user._id, name: req.user.name } : "NONE"
-  );
-  console.log("Body received:", JSON.stringify(req.body, null, 2));
-
   try {
-    const { title, content, thumbnail, category, publishedAt } = req.body;
+    const { title, content, thumbnail, category, publishedAt, slug } = req.body;
     const author = req.user?._id || req.user?.id;
 
-    console.log("Extracted values:");
-    console.log("- Title:", title);
-    console.log("- Content length:", content?.length);
-    console.log("- Thumbnail:", thumbnail);
-    console.log("- Category:", category);
-    console.log("- Author:", author);
+    if (!author) return fail(res, "User not authenticated", 401);
+    if (!title) return fail(res, "Title is required");
+    if (!content) return fail(res, "Content is required");
+    if (!category) return fail(res, "Category is required");
 
-    // Check each field individually
-    if (!author) {
-      console.log("❌ No author (user not authenticated)");
-      return res.status(401).json({ message: "User not authenticated" });
+    // THUMBNAIL IS NOW OPTIONAL - REMOVED THIS CHECK
+    // if (!thumbnail || !thumbnail.url)
+    //   return fail(res, "Thumbnail URL is required");
+
+    // Enforce publish gate (2 free publishes if inactive)
+    const user = await User.findById(author);
+    user.ensurePeriodWindow();
+    if (!user.canPublish()) {
+      return res.status(402).json({
+        success: false,
+        code: "PAYMENT_REQUIRED",
+        message:
+          "Publish limit reached. Please upgrade to continue publishing.",
+      });
     }
 
-    if (!title) {
-      console.log("❌ Missing title");
-      return res.status(400).json({ message: "Title is required" });
-    }
-
-    if (!content) {
-      console.log("❌ Missing content");
-      return res.status(400).json({ message: "Content is required" });
-    }
-
-    if (!thumbnail) {
-      console.log("❌ Missing thumbnail");
-      return res.status(400).json({ message: "Thumbnail is required" });
-    }
-
-    if (!thumbnail.url) {
-      console.log("❌ Missing thumbnail URL");
-      return res.status(400).json({ message: "Thumbnail URL is required" });
-    }
-
-    if (!category) {
-      console.log("❌ Missing category");
-      return res.status(400).json({ message: "Category is required" });
-    }
-
+    const pubAt = parseDateOrNull(publishedAt) || new Date();
     const articleData = {
       title,
       content,
       author,
-      thumbnail: {
+      category,
+      publishedAt: pubAt,
+    };
+
+    // ONLY ADD THUMBNAIL IF IT EXISTS
+    if (thumbnail && thumbnail.url) {
+      articleData.thumbnail = {
         url: thumbnail.url,
         alt: thumbnail.alt || title,
         publicId: thumbnail.publicId || null,
-      },
-      category,
-      publishedAt: publishedAt ? new Date(publishedAt) : Date.now(),
-    };
+      };
+    }
 
-    console.log("Creating article with:", articleData);
+    if (slug) articleData.slug = slug;
 
     const doc = await Article.create(articleData);
     await doc.populate("author", "name email avatar");
 
-    console.log("✅ Article created:", doc._id);
-    return res.status(201).json(doc);
+    // Increment count for inactive plans
+    await user.incrementPublishCountIfNeeded();
+
+    return ok(res, doc, 201);
   } catch (err) {
-    console.error("❌ Error creating article:", err);
-    return res.status(500).json({ message: err.message, stack: err.stack });
+    console.error("Error creating article:", err);
+    return fail(res, "Failed to create article", 500);
   }
 };
 
@@ -141,8 +136,12 @@ export const update = async (req, res) => {
     if ("category" in req.body && !category) {
       return res.status(400).json({ message: "Category cannot be empty" });
     }
-    if ("thumbnail" in req.body && (!thumbnail || !thumbnail.url)) {
-      return res.status(400).json({ message: "Thumbnail URL is required" });
+
+    // THUMBNAIL VALIDATION - NOW OPTIONAL, ONLY VALIDATE IF PROVIDED
+    if ("thumbnail" in req.body && thumbnail && !thumbnail.url) {
+      return res.status(400).json({
+        message: "Thumbnail URL is required when thumbnail is provided",
+      });
     }
 
     const updateFields = {};
@@ -152,7 +151,8 @@ export const update = async (req, res) => {
     if ("publishedAt" in req.body)
       updateFields.publishedAt = new Date(publishedAt);
 
-    if ("thumbnail" in req.body) {
+    // ONLY UPDATE THUMBNAIL IF IT EXISTS AND HAS A URL
+    if ("thumbnail" in req.body && thumbnail && thumbnail.url) {
       updateFields.thumbnail = {
         url: thumbnail.url,
         alt: thumbnail.alt || updateFields.title || "",
@@ -177,6 +177,7 @@ export const remove = async (req, res) => {
     const doc = await Article.findByIdAndDelete(req.params.id);
     if (!doc) return res.status(404).json({ message: "Article not found" });
 
+    // ONLY DELETE FROM CLOUDINARY IF THUMBNAIL EXISTS
     if (doc.thumbnail?.publicId) {
       await cloudinary.uploader.destroy(doc.thumbnail.publicId);
     }

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import Header from "./components/Header";
 import HomePage from "./components/HomePage";
@@ -18,70 +19,104 @@ import LoginPage from "./components/LoginPage";
 import UploadArticlePage from "./components/UploadArticlePage";
 import BlogPostWrapper from "./components/BlogPostWrapper";
 import Dashboard from "./components/Dashboard";
+import PricingPage from "./components/PricingPage";
+import PaymentGatewayPage from "./components/PaymentGatewayPage";
 
-const App = () => {
-  const handleDeletePost = () => {}; // empty
+import ReactGA from "react-ga4";
+import RephraserPage from "./components/RephraserPage";
+
+// ReactGA.initialize("G-9FEM0FMWZY");
+// ReactGA.initialize("");
+
+ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+
+function AppInner() {
+  const navigate = useNavigate();
 
   const [posts, setPosts] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // Read token once; memoize so it's stable
+  const token = useMemo(() => localStorage.getItem("token") || null, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setCurrentUser(null); // If you're using React state
-    navigate("/login"); // Or wherever you want to redirect after logout
+    setCurrentUser(null);
+    navigate("/login");
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = token
-      ? JSON.parse(localStorage.getItem("user") || "{}")
-      : null;
+    const t = localStorage.getItem("token");
+    const user = t ? JSON.parse(localStorage.getItem("user") || "{}") : null;
     setCurrentUser(user);
   }, []);
+  const baseUrl = import.meta.env.VITE_API_BASE;
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/articles")
+    fetch(`${baseUrl}/api/articles`)
       .then((res) => res.json())
       .then((data) => setPosts(data.data || []))
       .catch(() => setPosts([]));
   }, []);
 
+  function usePageTracking() {
+    const location = useLocation();
+
+    useEffect(() => {
+      ReactGA.send({ hitType: "pageview", page: location.pathname });
+    }, [location]);
+  }
+  ReactGA.send({
+    hitType: "pageview",
+    page: location.pathname,
+    title: document.title,
+  });
+
   return (
-    <Router>
-      <div className="bg-white text-brand-text font-sans flex flex-col min-h-screen">
-        <Header currentUser={currentUser} onLogout={handleLogout} />
-        <main className="flex-grow pt-20">
-          <Routes>
-            <Route
-              path="/"
-              element={<HomePage posts={posts} currentUser={currentUser} />}
-            />
-            <Route path="/community" element={<CommunityPage />} />
-            <Route path="/apply" element={<ApplyPage />} />
-            <Route path="/perks" element={<PerksPage />} />
-            <Route path="/faq" element={<FaqPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/upload-article" element={<UploadArticlePage />} />
-            <Route
-              path="/blog/:id"
-              element={
-                <BlogPostWrapper
-                  posts={posts}
-                  currentUser={currentUser}
-                  handleDeletePost={handleDeletePost}
-                />
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <div className="bg-white text-brand-text font-sans flex flex-col min-h-screen">
+      <Header currentUser={currentUser} onLogout={handleLogout} />
+      <main className="grow pt-20">
+        <Routes>
+          <Route
+            path="/"
+            element={<HomePage posts={posts} currentUser={currentUser} />}
+          />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/register" element={<ApplyPage />} />
+          <Route path="/perks" element={<PerksPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/upload-article" element={<UploadArticlePage />} />
+          <Route
+            path="/blog/:id"
+            element={
+              <BlogPostWrapper
+                posts={posts}
+                currentUser={currentUser}
+                handleDeletePost={() => {}}
+              />
+            }
+          />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/pricing-page" element={<PricingPage />} />
+          <Route path="/payment" element={<PaymentGatewayPage />} />
+          <Route path="/rephrase" element={<RephraserPage />} />
+
+          {/* Pass the token prop here */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
-};
+}
+
+const App = () => (
+  <Router>
+    <AppInner />
+  </Router>
+);
 
 export default App;

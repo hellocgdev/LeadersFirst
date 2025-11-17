@@ -120,7 +120,7 @@ const Dashboard = () => {
         </h1>
         <button
           onClick={handleNewArticle}
-          className="bg-brand-dark text-white px-6 py-2 rounded-md hover:bg-gray-800 font-semibold text-base transition-colors"
+          className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 font-semibold text-base transition-colors"
         >
           + New Article
         </button>

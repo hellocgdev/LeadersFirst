@@ -2,20 +2,47 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Bold from "@tiptap/extension-bold";
-import Italic from "@tiptap/extension-italic";
 import Underline from "@tiptap/extension-underline";
-import Heading from "@tiptap/extension-heading";
-import Link from "@tiptap/extension-link";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import ListItem from "@tiptap/extension-list-item";
 import Image from "@tiptap/extension-image";
-import JSZip from "jszip";
 import mammoth from "mammoth";
-import ArticlePreviewModal from "./ArticlePreviewModal"; // Import
+import ArticlePreviewModal from "./ArticlePreviewModal";
 
-// MenuBar Component
+const PaywallModal = ({ open, onClose, onUpgrade }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-sm w-full p-6 relative">
+        <button
+          className="absolute right-3 top-3 text-gray-500 hover:text-gray-800"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ✕
+        </button>
+        <h3 className="text-xl font-bold mb-2">Upgrade required</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          You’ve reached your free publish limit. Upgrade to continue.
+        </p>
+        <div className="flex gap-3">
+          <button
+            className="flex-1 bg-black text-white rounded-lg py-2 font-semibold hover:bg-gray-800"
+            onClick={onUpgrade}
+          >
+            Upgrade
+          </button>
+          <button
+            className="flex-1 bg-white border border-gray-300 rounded-lg py-2 font-semibold hover:bg-gray-100"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// MenuBar Component (UI unchanged)
 const MenuBar = React.memo(({ editor, onImageSelect }) => {
   if (!editor) return null;
   return (
@@ -169,7 +196,7 @@ const MenuBar = React.memo(({ editor, onImageSelect }) => {
   );
 });
 
-// Main Component
+// Main Component (UI unchanged)
 const UploadArticlePage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -187,30 +214,30 @@ const UploadArticlePage = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [processingDocx, setProcessingDocx] = useState(false);
   const [allArticles, setAllArticles] = useState([]);
-  const [showPreview, setShowPreview] = useState(false); // Preview state
+  const [showPreview, setShowPreview] = useState(false);
   const [publishedAt] = useState(() => {
     const now = new Date();
     return now.toLocaleString("en-GB", { hour12: false }).replace(",", "");
   });
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const contentImageInputRef = useRef(null);
   const thumbnailInputRef = useRef(null);
   const docxInputRef = useRef(null);
   const hasLoadedArticles = useRef(false);
 
-  // Editor
+  // Avoid duplicate extension names: only StarterKit + Underline + Image
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Bold,
-      Italic,
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
-      Heading.configure({ levels: [1, 2, 3] }),
-      Link,
-      BulletList,
-      OrderedList,
-      ListItem,
-      Image,
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "max-w-full h-auto rounded-lg my-4",
+        },
+      }),
     ],
     content: "",
   });
@@ -220,10 +247,9 @@ const UploadArticlePage = () => {
     if (!isAdmin || !token || hasLoadedArticles.current) return;
 
     hasLoadedArticles.current = true;
-    const fetchArticles = async () => {
+    (async () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE;
-
         const res = await fetch(`${baseUrl}/api/articles`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -234,47 +260,110 @@ const UploadArticlePage = () => {
       } catch (err) {
         console.error("Error fetching articles:", err);
       }
-    };
-
-    fetchArticles();
+    })();
   }, [isAdmin, token]);
 
-  // Extract and process images from DOCX
-  const extractImagesFromDocx = async (arrayBuffer) => {
+  // Upload image to server (same endpoint as thumbnail)
+  const uploadImageToServer = async (blobOrFile, name) => {
     try {
-      const zip = new JSZip();
-      const docxData = await zip.loadAsync(arrayBuffer);
-      const imageMap = {};
-      let uploadedCount = 0;
+      const baseUrl = import.meta.env.VITE_API_BASE;
+      const formData = new FormData();
+      const file =
+        blobOrFile instanceof File
+          ? blobOrFile
+          : new File([blobOrFile], name, {
+              type: blobOrFile.type || "image/png",
+            });
 
-      const mediaFolder = docxData.folder("word/media");
-      if (!mediaFolder) return imageMap;
+      formData.append("thumbnail", file);
 
-      for (const [path, file] of Object.entries(mediaFolder.files)) {
-        if (path.includes("image")) {
-          try {
-            uploadedCount++;
-            const imageData = await file.async("blob");
-            const fileName = path.split("/").pop();
-            const blobUrl = URL.createObjectURL(
-              new File([imageData], fileName, { type: imageData.type })
-            );
-            imageMap[fileName] = blobUrl;
-            console.log(`✅ Image ${uploadedCount} extracted: ${fileName}`);
-          } catch (imgErr) {
-            console.error(`Error processing image:`, imgErr);
-          }
-        }
+      const res = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || `Upload failed (${res.status})`);
       }
 
-      return imageMap;
+      const data = await res.json();
+      return data.url || "";
     } catch (err) {
-      console.error("❌ Image extraction error:", err);
-      return {};
+      console.error("Upload error:", err);
+      return "";
     }
   };
 
-  // Process DOCX file
+  // Helpers
+  const dataUrlToBlob = async (dataUrl) => {
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  };
+  const replaceAllSafe = (html, needle, replacement) =>
+    html.split(needle).join(replacement);
+
+  // DOCX processing without Buffer: use base64/data: URL from Mammoth
+  const processDocxWithImages = async (arrayBuffer) => {
+    console.log("🔄 Starting DOCX processing with image upload...");
+
+    let index = 0;
+    const jobs = [];
+    const placeholderToUrl = new Map();
+
+    const result = await mammoth.convertToHtml(
+      { arrayBuffer },
+      {
+        convertImage: mammoth.images.imgElement(async (image) => {
+          index += 1;
+          const placeholder = `__IMAGE_${index}__`;
+
+          try {
+            const base64 = await image.read("base64"); // no Buffer path
+            const mime = image.contentType || "image/png";
+            const dataUrl = `data:${mime};base64,${base64}`;
+
+            // async upload job
+            const job = (async () => {
+              try {
+                const blob = await dataUrlToBlob(dataUrl);
+                const ext = (mime.split("/")[1] || "png").toLowerCase();
+                const name = `docx-img-${Date.now()}-${index}.${ext}`;
+                const url = await uploadImageToServer(blob, name);
+                placeholderToUrl.set(placeholder, url || dataUrl); // fallback to dataUrl
+              } catch (e) {
+                console.error("Upload job error:", e);
+                placeholderToUrl.set(placeholder, dataUrl);
+              }
+            })();
+
+            jobs.push(job);
+            return { src: placeholder, alt: `Image ${index}` };
+          } catch (e) {
+            console.error(`❌ Failed to process ${placeholder}:`, e);
+            return {
+              src: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==",
+              alt: `Image ${index}`,
+            };
+          }
+        }),
+      }
+    );
+
+    console.log(`⏳ Waiting for ${jobs.length} image(s) to upload...`);
+    await Promise.all(jobs);
+
+    let finalHtml = result.value || "";
+    placeholderToUrl.forEach((url, ph) => {
+      finalHtml = replaceAllSafe(finalHtml, ph, url);
+    });
+
+    console.log("✅ DOCX processing complete!");
+    return { html: finalHtml, imageCount: placeholderToUrl.size };
+  };
+
+  // Handle DOCX file
   const handleDocxFile = async (file) => {
     if (!file || !file.name.endsWith(".docx")) {
       setError("❌ Please select a .docx file");
@@ -283,84 +372,66 @@ const UploadArticlePage = () => {
 
     setProcessingDocx(true);
     setError("");
-    setSuccess("📄 Processing DOCX...");
+    setSuccess("📄 Processing DOCX and uploading images...");
 
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const { html, imageCount } = await processDocxWithImages(arrayBuffer);
+      if (!html) throw new Error("Could not extract content from DOCX");
 
-      // Extract images
-      const imageMap = await extractImagesFromDocx(arrayBuffer);
-      const imageCount = Object.keys(imageMap).length;
-      console.log(`📊 Total images extracted: ${imageCount}`);
+      editor?.commands.setContent(html);
 
-      // Convert DOCX to HTML
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-
-      if (!result.value) {
-        throw new Error("Could not extract content from DOCX");
-      }
-
-      let htmlContent = result.value;
-
-      // Replace image paths with blob URLs
-      Object.entries(imageMap).forEach(([docxPath, blobUrl]) => {
-        htmlContent = htmlContent.replace(
-          new RegExp(`word/media/${docxPath}`, "g"),
-          blobUrl
-        );
-      });
-
-      editor?.commands.setContent(htmlContent);
-      setSuccess(`✅ DOCX loaded! (${imageCount} images extracted)`);
-      setTimeout(() => setSuccess(""), 3000);
+      setSuccess(
+        imageCount > 0
+          ? `✅ DOCX loaded! ${imageCount} image(s) uploaded and displayed.`
+          : "✅ DOCX loaded! No images found in document."
+      );
+      setTimeout(() => setSuccess(""), 5000);
     } catch (err) {
       console.error("❌ DOCX processing error:", err);
-      setError("❌ Error: " + err.message);
+      setError(`❌ Error: ${err.message}`);
     } finally {
       setProcessingDocx(false);
     }
   };
 
-  // Handle image selection
-  const handleContentImageSelect = (e) => {
+  // Manual image selection
+  const handleContentImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const blobUrl = URL.createObjectURL(file);
-    editor?.chain().focus().setImage({ src: blobUrl }).run();
+
+    const url = await uploadImageToServer(file, file.name);
+    if (url) editor?.chain().focus().setImage({ src: url }).run();
+    else setError("❌ Failed to upload image");
+
     if (contentImageInputRef.current) contentImageInputRef.current.value = "";
   };
 
-  // Handle thumbnail
+  // Thumbnail
   const handleThumbnailChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setThumbnailFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setThumbnailPreview(reader.result);
-    };
+    reader.onloadend = () => setThumbnailPreview(reader.result);
     reader.readAsDataURL(file);
   };
 
   // Drag and drop
-  const handleDrop = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragOver(false);
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
 
-      const files = e.dataTransfer.files;
-      const docxFile = Array.from(files).find((f) => f.name.endsWith(".docx"));
+    const files = e.dataTransfer.files;
+    const docxFile = Array.from(files).find((f) => f.name.endsWith(".docx"));
 
-      if (docxFile) {
-        handleDocxFile(docxFile);
-      } else {
-        setError("❌ Please drag a .docx file");
-      }
-    },
-    [editor]
-  );
+    if (docxFile) {
+      handleDocxFile(docxFile);
+    } else {
+      setError("❌ Please drag a .docx file");
+    }
+  }, []);
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
@@ -368,16 +439,14 @@ const UploadArticlePage = () => {
     setIsDragOver(true);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setIsDragOver(false);
-  }, []);
+  const handleDragLeave = useCallback(() => setIsDragOver(false), []);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) handleDocxFile(file);
   };
 
-  // Submit
+  // Submit (UI unchanged)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -392,16 +461,14 @@ const UploadArticlePage = () => {
       setError("❌ Please fill: Title, Labels, and Content");
       return;
     }
-
-    if (!thumbnailFile) {
-      setError("❌ Please upload a thumbnail image");
-      return;
-    }
+    // if (!thumbnailFile) {
+    //   setError("❌ Please upload a thumbnail image");
+    //   return;
+    // }
 
     setIsUploading(true);
 
     try {
-      // Upload thumbnail first
       const thumbFormData = new FormData();
       thumbFormData.append("thumbnail", thumbnailFile);
       const baseUrl = import.meta.env.VITE_API_BASE;
@@ -412,13 +479,9 @@ const UploadArticlePage = () => {
         body: thumbFormData,
       });
 
-      if (!thumbRes.ok) {
-        throw new Error("Thumbnail upload failed");
-      }
-
+      // if (!thumbRes.ok) throw new Error("Thumbnail upload failed");
       const thumbData = await thumbRes.json();
 
-      // Publish article
       const res = await fetch(`${baseUrl}/api/articles`, {
         method: "POST",
         headers: {
@@ -440,6 +503,19 @@ const UploadArticlePage = () => {
 
       const data = await res.json();
 
+      if (res.status === 402 && data?.code === "PAYMENT_REQUIRED") {
+        setError("You have reached your free publish limit.");
+        setShowPaywall(true);
+        setTimeout(() => {
+          setShowPaywall((open) => {
+            if (open) navigate("/pay");
+            return open;
+          });
+        }, 5000);
+        setIsUploading(false);
+        return;
+      }
+
       if (res.ok) {
         setSuccess("✅ Article published successfully!");
         setTitle("");
@@ -447,16 +523,13 @@ const UploadArticlePage = () => {
         setThumbnailFile(null);
         setThumbnailPreview("");
         editor?.commands.setContent("");
-
-        // Add new article to list
         setAllArticles((prev) => [data.data, ...prev]);
-
-        setTimeout(() => navigate("/dashboard"), 1500);
+        setTimeout(() => navigate("/upload-article"), 1500);
       } else {
-        setError(`❌ ${data.message || "Failed to publish"}`);
+        setError(`${data.message || "Failed to publish"}`);
       }
     } catch (error) {
-      setError(`❌ Error: ${error.message}`);
+      setError(`Error: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -561,7 +634,10 @@ const UploadArticlePage = () => {
                 ref={docxInputRef}
                 type="file"
                 accept=".docx"
-                onChange={handleFileChange}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleDocxFile(f);
+                }}
                 className="hidden"
                 disabled={processingDocx}
               />
@@ -601,7 +677,6 @@ const UploadArticlePage = () => {
       {/* Sidebar */}
       <aside className="w-80 border-l border-gray-200 bg-white flex flex-col overflow-hidden shadow-sm">
         <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
-          {/* Preview & Publish */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -619,7 +694,6 @@ const UploadArticlePage = () => {
             </button>
           </div>
 
-          {/* Thumbnail Upload */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Thumbnail Image
@@ -647,24 +721,33 @@ const UploadArticlePage = () => {
             )}
           </div>
 
-          {/* Labels */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
-              Labels
+              Category
             </label>
-            <input
-              type="text"
+            <select
               value={labels}
               onChange={(e) => setLabels(e.target.value)}
-              placeholder="Separate by commas"
-              className="w-full border-0 border-b-2 border-gray-300 bg-transparent focus:ring-0 focus:border-brand-teal px-0 py-1.5 text-sm placeholder:text-gray-400 transition"
-            />
-            <p className="text-xs text-gray-400 pt-1">
-              No matching suggestions
-            </p>
+              className="w-full border-2 border-gray-300 bg-white focus:ring-2 focus:ring-brand-teal focus:border-brand-teal px-3 py-2 text-sm rounded-md transition"
+            >
+              <option value="">Select a category</option>
+              <option value="Technology">Technology</option>
+              <option value="Politics">Politics</option>
+              <option value="Environment">Environment</option>
+              <option value="Business">Business</option>
+              <option value="Health">Health</option>
+              <option value="Science">Science</option>
+              <option value="Education">Education</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Sports">Sports</option>
+              <option value="Travel">Travel</option>
+              <option value="Food">Food</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Lifestyle">Lifestyle</option>
+              <option value="Leadership">Leadership</option>
+            </select>
           </div>
 
-          {/* Published On */}
           <div className="space-y-1">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Published on
@@ -672,7 +755,6 @@ const UploadArticlePage = () => {
             <p className="text-sm text-gray-700 font-medium">{publishedAt}</p>
           </div>
 
-          {/* Uploaded Articles */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Uploaded Articles ({allArticles.length})
@@ -704,7 +786,6 @@ const UploadArticlePage = () => {
         </div>
       </aside>
 
-      {/* Preview Modal */}
       <ArticlePreviewModal
         open={showPreview}
         onClose={() => setShowPreview(false)}
@@ -714,6 +795,14 @@ const UploadArticlePage = () => {
         labels={labels}
         publishedAt={publishedAt}
         author={user?.email || "Anonymous"}
+      />
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgrade={() => {
+          setShowPaywall(false);
+          navigate("/pay");
+        }}
       />
     </div>
   );

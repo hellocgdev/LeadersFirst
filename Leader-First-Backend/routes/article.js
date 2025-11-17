@@ -1,6 +1,7 @@
 import express from "express";
 import articleController from "../controller/articleController.js";
 import auth from "../middleware/auth.js";
+import { publishGate } from "../middleware/publishGate.js";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get("/author/:authorId", articleController.getByAuthor);
 router.get("/:id", articleController.get);
 
 // Protected routes - auth middleware extracts user from token
-router.post("/", auth, articleController.create);
+router.post("/", auth, publishGate, articleController.create);
 router.put("/:id", auth, articleController.update);
 router.delete("/:id", auth, articleController.remove);
 
