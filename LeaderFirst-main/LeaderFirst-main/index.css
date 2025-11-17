@@ -1,1 +1,42 @@
 @import "tailwindcss";
+/* Ensure images in TipTap editor display properly */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 0.5rem;
+}
+
+/* Ensure images in article content display properly */
+.prose img,
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 0.5rem;
+}
+
+/* Force images to display in editor and content */
+.ProseMirror img,
+.prose img,
+.article-content img,
+img[src^="https://res.cloudinary.com"]
+{
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 1.5rem auto !important;
+  border-radius: 0.5rem;
+  object-fit: contain;
+}
+
+/* Remove any broken image styling */
+img::before {
+  content: none !important;
+}
+
+img::after {
+  content: none !important;
+}
