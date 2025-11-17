@@ -16,7 +16,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:5173",
+      "https://leadersfirst-frontend.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -45,7 +52,7 @@ app.use("/api/articles", articleRoute);
 app.use("/api/upload", uploadRoute);
 // Billing and app routes
 app.use("/billing", billingRoute);
-app.use("/api/payments", paymentRoutes); 
+app.use("/api/payments", paymentRoutes);
 
 // 9. 404 handler
 app.use((req, res) => {
