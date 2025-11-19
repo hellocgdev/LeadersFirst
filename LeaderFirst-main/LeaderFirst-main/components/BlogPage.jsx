@@ -27,17 +27,23 @@ export const InsightCard = ({
       }
     }}
   >
-    {/* Image Container */}
-    <div className="relative overflow-hidden h-56 bg-gradient-to-br from-gray-200 to-gray-300">
+    {/* Image Container - FIXED */}
+    <div
+      className="relative w-full overflow-hidden"
+      style={{ paddingBottom: "56.25%" }}
+    >
       {imageUrl && !imageError ? (
-        <img
-          src={imageUrl}
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        <div
+          className="absolute inset-0 w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
+          style={{
+            backgroundImage: `url(${imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
           onError={onImageError}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
           <span className="text-gray-600 font-bold text-4xl">
             {title.substring(0, 1)}
           </span>
@@ -62,7 +68,7 @@ export const InsightCard = ({
         {excerpt}
       </p>
 
-      {/* Footer with Author and Date */}
+      {/* Footer with Author and Date
       {(author || date) && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between text-xs text-gray-500">
@@ -72,7 +78,7 @@ export const InsightCard = ({
             {date && <span>{date}</span>}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   </div>
 );

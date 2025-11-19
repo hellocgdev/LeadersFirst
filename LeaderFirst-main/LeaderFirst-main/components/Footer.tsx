@@ -1,26 +1,54 @@
-
-import React from 'react';
-import { LinkedInIcon, InstagramIcon, FacebookIcon, TwitterIcon, YouTubeIcon } from './icons/Icons';
+import React from "react";
+import {
+  LinkedInIcon,
+  InstagramIcon,
+  FacebookIcon,
+  TwitterIcon,
+  YouTubeIcon,
+} from "./icons/Icons";
 
 const Footer: React.FC = () => {
   const socialLinks = [
-    { href: "https://www.linkedin.com/in/the-leaders-first-63a0b738b/", icon: LinkedInIcon, label: "LinkedIn" },
-    { href: "https://www.instagram.com/theleadersfirstt/", icon: InstagramIcon, label: "Instagram" },
-    { href: "https://www.facebook.com/theleadersfirst/photos", icon: FacebookIcon, label: "Facebook" },
-    { href: "https://x.com/TheLeadersFirst", icon: TwitterIcon, label: "Twitter/X" },
-    { href: "https://youtube.com/@theleadersfirstt?si=zUJHp9VsWUqZyKGY", icon: YouTubeIcon, label: "YouTube" },
+    {
+      href: "https://www.linkedin.com/in/the-leaders-first-63a0b738b/",
+      icon: LinkedInIcon,
+      label: "LinkedIn",
+    },
+    {
+      href: "https://www.instagram.com/theleadersfirstt/",
+      icon: InstagramIcon,
+      label: "Instagram",
+    },
+    {
+      href: "https://www.facebook.com/theleadersfirst/photos",
+      icon: FacebookIcon,
+      label: "Facebook",
+    },
+    {
+      href: "https://x.com/TheLeadersFirst",
+      icon: TwitterIcon,
+      label: "Twitter/X",
+    },
+    {
+      href: "https://youtube.com/@theleadersfirstt?si=zUJHp9VsWUqZyKGY",
+      icon: YouTubeIcon,
+      label: "YouTube",
+    },
   ];
 
   return (
     <footer className="bg-white py-12">
       <div className="container mx-auto px-6 text-center text-brand-dark">
-        <a href="mailto:hello@theleadersfirst.com" className="font-semibold text-lg hover:underline">
+        <a
+          href="mailto:hello@theleadersfirst.com"
+          className="font-semibold text-lg hover:underline"
+        >
           hello@theleadersfirst.com
         </a>
-        
+
         <div className="flex justify-center space-x-6 mt-6">
           {socialLinks.map((link, index) => (
-            <a 
+            <a
               key={index}
               href={link.href}
               target="_blank"

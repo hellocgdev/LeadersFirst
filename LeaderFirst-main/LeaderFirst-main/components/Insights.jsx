@@ -35,17 +35,6 @@ const getExcerpt = (htmlContent, maxLength = 150) => {
   return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
 };
 
-// Fallback image component
-const FallbackImage = ({ className, alt }) => (
-  <div
-    className={`${className} bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center`}
-  >
-    <span className="text-gray-600 text-sm font-medium">
-      {alt || "No Image"}
-    </span>
-  </div>
-);
-
 const Insights = () => {
   const [articles, setArticles] = useState([]);
   const [shuffledArticles, setShuffledArticles] = useState([]);
@@ -170,28 +159,34 @@ const Insights = () => {
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column */}
+          {/* Left Column - FIXED */}
           <div className="lg:col-span-1 space-y-8">
             <Link
               to={`/blog/${leftTopArticle._id}`}
               className="cursor-pointer group block focus:outline-none"
             >
-              <div className="relative overflow-hidden rounded-lg shadow-md mb-4">
+              <div
+                className="relative w-full overflow-hidden rounded-lg shadow-md mb-4"
+                style={{ paddingBottom: "75%" }}
+              >
                 {leftTopArticle.thumbnail?.url &&
                 !imageErrors[leftTopArticle._id] ? (
-                  <img
-                    src={leftTopArticle.thumbnail.url}
-                    alt={leftTopArticle.thumbnail.alt || leftTopArticle.title}
-                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={() => handleImageError(leftTopArticle._id)}
+                  <div
+                    className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                    style={{
+                      backgroundImage: `url(${leftTopArticle.thumbnail.url})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
                   />
                 ) : (
-                  <FallbackImage
-                    className="w-full h-48"
-                    alt={leftTopArticle.title}
-                  />
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                    <span className="text-gray-600 text-sm font-medium px-4 text-center">
+                      {leftTopArticle.title}
+                    </span>
+                  </div>
                 )}
-                <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white p-2 text-xs font-bold uppercase">
+                <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white p-2 text-xs font-bold uppercase z-10">
                   The Leaders First
                 </div>
               </div>
@@ -205,7 +200,7 @@ const Insights = () => {
                 to={`/blog/${leftBottomArticle._id}`}
                 className="flex gap-4 items-start cursor-pointer group focus:outline-none"
               >
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-blue-700 uppercase">
                     {leftBottomArticle.category}
                   </p>
@@ -213,47 +208,53 @@ const Insights = () => {
                     {leftBottomArticle.title}
                   </h4>
                 </div>
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 w-24 h-24 rounded-md overflow-hidden">
                   {leftBottomArticle.thumbnail?.url &&
                   !imageErrors[leftBottomArticle._id] ? (
-                    <img
-                      src={leftBottomArticle.thumbnail.url}
-                      alt={
-                        leftBottomArticle.thumbnail.alt ||
-                        leftBottomArticle.title
-                      }
-                      className="w-24 h-24 object-cover rounded-md"
-                      onError={() => handleImageError(leftBottomArticle._id)}
+                    <div
+                      className="absolute inset-0 w-full h-full bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url(${leftBottomArticle.thumbnail.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
                     />
                   ) : (
-                    <FallbackImage
-                      className="w-24 h-24 rounded-md"
-                      alt={leftBottomArticle.title}
-                    />
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                      <span className="text-gray-600 text-xs font-medium px-2 text-center">
+                        No Image
+                      </span>
+                    </div>
                   )}
                 </div>
               </Link>
             </div>
           </div>
 
-          {/* Center Column - Main Article */}
+          {/* Center Column - Main Article - FIXED */}
           <Link
             to={`/blog/${mainArticle._id}`}
             className="lg:col-span-2 cursor-pointer group block focus:outline-none"
           >
-            <div className="relative overflow-hidden rounded-lg shadow-lg mb-4">
+            <div
+              className="relative w-full overflow-hidden rounded-lg shadow-lg mb-4"
+              style={{ paddingBottom: "56.25%" }}
+            >
               {mainArticle.thumbnail?.url && !imageErrors[mainArticle._id] ? (
-                <img
-                  src={mainArticle.thumbnail.url}
-                  alt={mainArticle.thumbnail.alt || mainArticle.title}
-                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={() => handleImageError(mainArticle._id)}
+                <div
+                  className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                  style={{
+                    backgroundImage: `url(${mainArticle.thumbnail.url})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
                 />
               ) : (
-                <FallbackImage
-                  className="w-full h-96"
-                  alt={mainArticle.title}
-                />
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                  <span className="text-gray-600 text-sm font-medium px-4 text-center">
+                    {mainArticle.title}
+                  </span>
+                </div>
               )}
             </div>
             <p className="text-sm font-bold uppercase tracking-wider text-blue-700 mb-2">
@@ -286,7 +287,7 @@ const Insights = () => {
               </Link>
             </div>
             <div className="space-y-4">
-              {latestArticles.map((article, index) => (
+              {latestArticles.map((article) => (
                 <Link
                   key={article._id}
                   to={`/blog/${article._id}`}
@@ -304,34 +305,40 @@ const Insights = () => {
           </div>
         </div>
 
-        {/* Bottom Grid */}
+        {/* Bottom Grid - FIXED */}
         <div className="mt-16 pt-12 border-t border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {bottomGridArticles.map((article) => (
               <Link
                 key={article._id}
                 to={`/blog/${article._id}`}
                 className="cursor-pointer group block focus:outline-none"
               >
-                <div className="relative overflow-hidden rounded-lg shadow-md mb-4">
+                <div
+                  className="relative w-full overflow-hidden rounded-lg shadow-md mb-4"
+                  style={{ paddingBottom: "75%" }}
+                >
                   {article.thumbnail?.url && !imageErrors[article._id] ? (
-                    <img
-                      src={article.thumbnail.url}
-                      alt={article.thumbnail.alt || article.title}
-                      className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={() => handleImageError(article._id)}
+                    <div
+                      className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                      style={{
+                        backgroundImage: `url(${article.thumbnail.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
                     />
                   ) : (
-                    <FallbackImage
-                      className="w-full h-40"
-                      alt={article.title}
-                    />
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                      <span className="text-gray-600 text-sm font-medium px-4 text-center">
+                        {article.title}
+                      </span>
+                    </div>
                   )}
                 </div>
-                <p className="text-xs font-semibold text-blue-700 uppercase mb-1">
+                <p className="text-xs font-semibold text-blue-700 uppercase mb-2">
                   {article.category}
                 </p>
-                <h4 className="font-semibold text-gray-800 group-hover:text-brand-teal transition-colors">
+                <h4 className="font-semibold text-gray-800 group-hover:text-brand-teal transition-colors line-clamp-3">
                   {article.title}
                 </h4>
               </Link>

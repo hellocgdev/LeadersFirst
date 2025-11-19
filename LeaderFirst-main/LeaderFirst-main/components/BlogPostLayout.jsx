@@ -11,6 +11,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import Image from "@tiptap/extension-image";
+import "../styling/BlogPostLayout.css";
 
 // MenuBar for editor
 const MenuBar = ({ editor }) => {
@@ -20,42 +21,42 @@ const MenuBar = ({ editor }) => {
     <div className="mb-2 flex flex-wrap gap-2 bg-gray-100 p-2 rounded">
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
         <b>B</b>
       </button>
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
         <i>I</i>
       </button>
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
         <u>U</u>
       </button>
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().setHeading({ level: 2 }).run()}
       >
         H2
       </button>
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
         • List
       </button>
       <button
         type="button"
-        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border"
+        className="px-3 py-1 bg-white hover:bg-gray-200 rounded border text-sm"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       >
         1. List
@@ -126,15 +127,13 @@ const BlogPostLayout = ({
     }
 
     try {
-      const res = await fetch(
-        `https://leader-first.onrender.com/api/articles/${articleId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const baseUrl = import.meta.env.VITE_API_BASE;
+      const res = await fetch(`${baseUrl}/api/articles/${articleId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await res.json();
 
@@ -153,12 +152,10 @@ const BlogPostLayout = ({
   // Handle edit mode toggle
   const handleEditToggle = () => {
     if (!isEditing) {
-      // Entering edit mode
       setIsEditing(true);
       editor?.setEditable(true);
       editor?.commands.setContent(content);
     } else {
-      // Canceling edit
       setIsEditing(false);
       editor?.setEditable(false);
       editor?.commands.setContent(content);
@@ -208,7 +205,6 @@ const BlogPostLayout = ({
         setIsEditing(false);
         editor?.setEditable(false);
 
-        // Reload page to show updated content
         setTimeout(() => {
           window.location.reload();
         }, 1000);
@@ -234,122 +230,112 @@ const BlogPostLayout = ({
 
   return (
     <div className="animate-fade-in">
-      <div className="container mx-auto px-6 py-16">
+      <div className="container mx-auto px-4 py-4">
         <article className="max-w-4xl mx-auto">
-          {/* Article Header */}
-          <header className="mb-12 text-center">
+          {/* Article Header - COMPACT */}
+          <header className="mb-6 text-center">
             {isEditing ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <input
                   type="text"
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
-                  className="text-center w-full px-4 py-2 border border-gray-300 rounded-md uppercase text-sm font-semibold text-brand-teal"
+                  className="text-center w-full px-3 py-1.5 border border-gray-300 rounded-md uppercase text-xs font-semibold text-brand-teal"
                   placeholder="Category"
                 />
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="text-center w-full px-4 py-3 border border-gray-300 rounded-md text-4xl md:text-5xl font-bold text-brand-dark font-serif"
+                  className="text-center w-full px-4 py-2 border border-gray-300 rounded-md text-2xl md:text-3xl font-bold text-brand-dark"
                   placeholder="Article Title"
                 />
               </div>
             ) : (
               <>
-                <p className="text-brand-teal font-semibold uppercase tracking-wider text-sm mb-2">
+                <p className="text-brand-teal font-semibold uppercase tracking-wider text-xs mb-2">
                   {category}
                 </p>
-                <h1 className="text-4xl md:text-5xl font-bold text-brand-dark mb-4 font-serif leading-tight">
+                <h1 className="text-2xl md:text-3xl font-bold text-brand-dark mb-3 leading-tight">
                   {title}
                 </h1>
-                {metaTitle && (
-                  <p className="text-lg text-gray-500">{metaTitle}</p>
-                )}
               </>
-            )}
-
-            {/* Author and Date */}
-            {!isEditing && (
-              <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mt-4">
-                <span>By {author?.name || author?.email || "Anonymous"}</span>
-                <span>•</span>
-                <span>{formatDate(publishedAt)}</span>
-              </div>
             )}
           </header>
 
-          {/* Main Image */}
+          {/* Main Image - COMPACT */}
           {thumbnail?.url && !isEditing && (
-            <img
-              src={thumbnail.url}
-              alt={thumbnail.alt || title}
-              className="w-full h-auto rounded-lg shadow-lg mb-12 object-cover"
-            />
+            <div className="mb-6">
+              <img
+                src={thumbnail.url}
+                alt={thumbnail.alt || title}
+                className="w-[600px] max-h-[400px] rounded-lg shadow-lg object-cover"
+              />
+            </div>
           )}
 
-          {/* Admin Controls */}
+          {/* Admin Controls - COMPACT */}
           {canManagePost && (
-            <div className="flex justify-end gap-3 mb-8">
+            <div className="flex justify-end gap-2 mb-6">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleEditToggle}
-                    className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors font-semibold text-sm"
+                    className="bg-gray-500 text-white px-4 py-1.5 rounded-md hover:bg-gray-600 transition-colors font-medium text-xs"
                     disabled={isUpdating}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleUpdate}
-                    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors font-semibold text-sm disabled:opacity-50"
+                    className="bg-green-600 text-white px-4 py-1.5 rounded-md hover:bg-green-700 transition-colors font-medium text-xs disabled:opacity-50"
                     disabled={isUpdating}
                   >
-                    {isUpdating ? "Saving..." : "Save Changes"}
+                    {isUpdating ? "Saving..." : "Save"}
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={handleEditToggle}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-semibold text-sm"
+                    className="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium text-xs"
                   >
-                    Edit Post
+                    Edit
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors font-semibold text-sm"
+                    className="bg-red-600 text-white px-4 py-1.5 rounded-md hover:bg-red-700 transition-colors font-medium text-xs"
                   >
-                    Delete Post
+                    Delete
                   </button>
                 </>
               )}
             </div>
           )}
 
-          {/* Update Messages */}
+          {/* Update Messages - COMPACT */}
           {updateError && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
               {updateError}
             </div>
           )}
           {updateSuccess && (
-            <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div className="mb-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
               {updateSuccess}
             </div>
           )}
 
-          {/* Article Body */}
+          {/* Article Body - COMPACT */}
           {isEditing ? (
-            <div className="border border-gray-300 rounded-lg p-4">
+            <div className="border border-gray-300 rounded-lg p-3">
               <MenuBar editor={editor} />
-              <div className="border border-gray-200 rounded-md min-h-[400px] p-4">
+              <div className="border border-gray-200 rounded-md min-h-[400px] p-3">
                 <EditorContent editor={editor} />
               </div>
             </div>
           ) : (
             <div
-              className="article-content prose prose-lg max-w-none text-gray-800"
+              className="article-content"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           )}
