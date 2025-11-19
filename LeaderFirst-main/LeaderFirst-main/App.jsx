@@ -21,9 +21,12 @@ import BlogPostWrapper from "./components/BlogPostWrapper";
 import Dashboard from "./components/Dashboard";
 import PricingPage from "./components/PricingPage";
 import PaymentGatewayPage from "./components/PaymentGatewayPage";
+// import UploadArticlePage2 from "./components/UploadArticlePage2";
 
 import ReactGA from "react-ga4";
 import RephraserPage from "./components/RephraserPage";
+import DonationSection from "./components/CharityPage";
+import DonationSuccessPage from "./components/DonationSuccessPage";
 
 // ReactGA.initialize("G-9FEM0FMWZY");
 // ReactGA.initialize("");
@@ -103,6 +106,8 @@ function AppInner() {
           <Route path="/pricing-page" element={<PricingPage />} />
           <Route path="/payment" element={<PaymentGatewayPage />} />
           <Route path="/rephrase" element={<RephraserPage />} />
+          <Route path="/donations" element={<DonationSection />} />
+          <Route path="/donation-success" element={<DonationSuccessPage />} />
 
           {/* Pass the token prop here */}
           <Route path="*" element={<Navigate to="/" replace />} />

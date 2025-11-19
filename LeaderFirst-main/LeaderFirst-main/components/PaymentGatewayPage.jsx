@@ -344,7 +344,7 @@ const PaymentGatewayPage = ({ plan, onClose, onPaymentSuccess }) => {
 
           <div className="relative">
             <img
-              src="/upi-qr-code.jpg"
+              src="/shared_status.png"
               alt="Scan to Pay"
               className="max-w-[90vw] max-h-[90vh] w-auto h-auto rounded-lg shadow-2xl"
               onError={(e) => {
