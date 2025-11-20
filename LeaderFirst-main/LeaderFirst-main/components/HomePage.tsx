@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import Insights from "./Insights";
 import CtaSection from "./CtaSection";
 import OfferPopup from "./OfferPopUp";
+import TrendingStrip from "./TrendingStrip";
+import NewsletterBand from "./NewsLetterBand";
+import EditorsPicks from "./EditorsPicks";
 
 const HomePage = ({ posts, currentUser }) => {
   const [showOffer, setShowOffer] = useState(false);
@@ -27,10 +30,25 @@ const HomePage = ({ posts, currentUser }) => {
     // e.g., window.location.href = "/subscribe";
   };
 
+  // Use top 3 by viewCount as Editor’s Picks for now
+  const editorsPickArticles = posts
+    .slice() // copy
+    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+    .slice(0, 3);
+
+  // Trending can be next 6, or a different sort if you want
+  const trendingArticles = posts
+    .slice()
+    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+    .slice(3, 9);
+
   return (
     <main>
       <Insights posts={posts} />
-      <CtaSection currentUser={currentUser} />
+      <EditorsPicks articles={editorsPickArticles} />
+      <TrendingStrip articles={trendingArticles} />
+      {/* <CtaSection currentUser={currentUser} /> */}
+      <NewsletterBand />
       {showOffer && (
         <OfferPopup onClose={handleCloseOffer} onCtaClick={handleCtaOffer} />
       )}
