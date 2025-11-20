@@ -44,7 +44,7 @@ const LoginPage = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8 md:p-12">
           <div className="text-center mb-8">
-            <h1 className="font-serif text-4xl font-bold text-brand-dark">
+            <h1 className="font-serif text-4xl font-semibold text-brand-dark">
               Login
             </h1>
             <p className="text-gray-600 mt-2">Welcome back to our community.</p>

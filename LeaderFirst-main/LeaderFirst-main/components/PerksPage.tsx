@@ -69,7 +69,7 @@ const PerksPage = () => {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h1 className="font-serif text-5xl font-bold text-brand-dark">
+            <h1 className="font-serif text-5xl font-semibold text-brand-dark">
               Member Benefits
             </h1>
             <p className="text-lg text-gray-500 mt-2">Insider Sneak-peaks</p>
@@ -108,7 +108,7 @@ const PerksPage = () => {
           {/* Top Section */}
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="font-serif text-4xl md:text-5xl font-bold text-brand-dark leading-tight">
+              <h2 className="font-serif text-4xl md:text-5xl font-semibold text-brand-dark leading-tight">
                 Who's right for The Leaders First...and who isn't?
               </h2>
               <ul className="mt-6 space-y-3 text-lg text-gray-700">
@@ -148,7 +148,7 @@ const PerksPage = () => {
           {/* Bottom Section */}
           <div className="mt-24 pt-16 border-t border-gray-200">
             <div className="mb-12">
-              <h3 className="font-serif text-4xl font-bold text-brand-dark text-center">
+              <h3 className="font-serif text-4xl font-semibold text-brand-dark text-center">
                 Eligibility Criteria
               </h3>
             </div>

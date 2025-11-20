@@ -222,7 +222,7 @@ const BlogPage = () => {
         <div className="container mx-auto px-6">
           {/* Header */}
           <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-7xl font-bold text-brand-dark mb-4 font-serif leading-tight">
+            <h1 className="text-6xl md:text-7xl font-semibold text-brand-dark mb-4 font-serif leading-tight">
               {pageTitle}
             </h1>
             <p className="max-w-2xl mx-auto text-lg text-gray-600">
