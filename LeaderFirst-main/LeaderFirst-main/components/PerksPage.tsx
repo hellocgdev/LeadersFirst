@@ -8,10 +8,6 @@ const BenefitItem = ({ title, description }) => (
   </div>
 );
 
-const AsteriskSeparator: React.FC<{ className?: string }> = ({
-  className = "",
-}) => <p className={`text-2xl text-gray-500 my-8 ${className}`}>*</p>;
-
 const CheckIcon = () => (
   <svg
     className="w-5 h-5 text-brand-dark mr-3 flex-shrink-0"
@@ -69,7 +65,7 @@ const PerksPage = () => {
   ];
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pl-10 pr-10">
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -78,46 +74,31 @@ const PerksPage = () => {
             </h1>
             <p className="text-lg text-gray-500 mt-2">Insider Sneak-peaks</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-x-12 gap-y-8">
-            {/* Column 1 */}
-            <div>
-              <AsteriskSeparator className="mt-0" />
-              <BenefitItem
-                title={benefitsCol1[0].title}
-                description={benefitsCol1[0].description}
-              />
-              <AsteriskSeparator />
-              <BenefitItem
-                title={benefitsCol1[1].title}
-                description={benefitsCol1[1].description}
-              />
-            </div>
-            {/* Column 2 */}
-            <div>
-              <AsteriskSeparator className="mt-0" />
-              <BenefitItem
-                title={benefitsCol2[0].title}
-                description={benefitsCol2[0].description}
-              />
-              <AsteriskSeparator />
-              <BenefitItem
-                title={benefitsCol2[1].title}
-                description={benefitsCol2[1].description}
-              />
-            </div>
-            {/* Column 3 */}
-            <div>
-              <AsteriskSeparator className="mt-0" />
-              <BenefitItem
-                title={benefitsCol3[0].title}
-                description={benefitsCol3[0].description}
-              />
-              <AsteriskSeparator />
-              <BenefitItem
-                title={benefitsCol3[1].title}
-                description={benefitsCol3[1].description}
-              />
-            </div>
+          <div className="grid text-md md:grid-cols-3 gap-x-32 gap-y-22">
+            <BenefitItem
+              title={benefitsCol1[0].title}
+              description={benefitsCol1[0].description}
+            />
+            <BenefitItem
+              title={benefitsCol2[0].title}
+              description={benefitsCol2[0].description}
+            />
+            <BenefitItem
+              title={benefitsCol3[0].title}
+              description={benefitsCol3[0].description}
+            />
+            <BenefitItem
+              title={benefitsCol1[1].title}
+              description={benefitsCol1[1].description}
+            />
+            <BenefitItem
+              title={benefitsCol2[1].title}
+              description={benefitsCol2[1].description}
+            />
+            <BenefitItem
+              title={benefitsCol3[1].title}
+              description={benefitsCol3[1].description}
+            />
           </div>
         </div>
       </section>
@@ -157,7 +138,7 @@ const PerksPage = () => {
             </div>
             <div className="flex justify-center">
               <img
-                src="https://theleadersfirst.com/wp-content/uploads/2023/11/pexels-rdne-stock-project-7551752-1-2048x1365.jpg"
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyYGBMiUpCAgk_AxbZ3-005Ddgyvmsm1I2Og&s"
                 alt="Diverse group of professionals"
                 className="rounded-2xl shadow-lg w-full max-w-lg object-cover"
               />
@@ -166,54 +147,50 @@ const PerksPage = () => {
 
           {/* Bottom Section */}
           <div className="mt-24 pt-16 border-t border-gray-200">
-            <div className="grid md:grid-cols-3 gap-12">
-              <div className="md:col-span-1">
-                <h3 className="font-serif text-4xl font-bold text-brand-dark">
-                  Eligibility Criteria
-                </h3>
+            <div className="mb-12">
+              <h3 className="font-serif text-4xl font-bold text-brand-dark text-center">
+                Eligibility Criteria
+              </h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-x-16 gap-y-10 max-w-5xl mx-auto">
+              <div>
+                <h4 className="font-bold text-lg text-brand-dark mb-2">
+                  Revenue
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
+                  The average Leaders First member has 500 Cr in annual
+                  revenue but we have a minimum requirement of at least 100
+                  Cr in revenue or funding or previous exit.
+                </p>
               </div>
-              <div className="md:col-span-2">
-                <div className="grid sm:grid-cols-2 gap-x-12 gap-y-10">
-                  <div>
-                    <h4 className="font-bold text-lg text-brand-dark mb-2">
-                      Revenue
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      The average Leaders First member has 500 Cr in annual
-                      revenue but we have a minimum requirement of at least 100
-                      Cr in revenue or funding or previous exit.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-brand-dark mb-2">
-                      Industry
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      Most members run digital startups and you must be the
-                      Founder or CEO. Your 8-person Core group will have similar
-                      sized businesses in similar industries.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-brand-dark mb-2">
-                      Acceptance
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      Each Founder or CEO that applies is interviewed and
-                      highly-vetted, our acceptance rate being just 8%.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-brand-dark mb-2">
-                      Community
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      To keep The Leaders First community intimate, we are
-                      limiting the community to only 50 new Core groups at this
-                      moment. Apply early.
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <h4 className="font-bold text-lg text-brand-dark mb-2">
+                  Industry
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
+                  Most members run digital startups and you must be the
+                  Founder or CEO. Your 8-person Core group will have similar
+                  sized businesses in similar industries.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-lg text-brand-dark mb-2">
+                  Acceptance
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
+                  Each Founder or CEO that applies is interviewed and
+                  highly-vetted, our acceptance rate being just 8%.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-lg text-brand-dark mb-2">
+                  Community
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
+                  To keep The Leaders First community intimate, we are
+                  limiting the community to only 50 new Core groups at this
+                  moment. Apply early.
+                </p>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CheckMarkIcon, BrainIcon } from "./icons/Icons";
 import PaymentGatewayPage from "./PaymentGatewayPage";
+import OfferPopup from "./OfferPopUp";
 
 const plansData = [
   {
@@ -111,6 +112,26 @@ const PricingPage = () => {
   const headerRef = useRef(null);
   const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showOffer, setShowOffer] = useState(false);
+
+  useEffect(() => {
+    // Prevent repeat during the same tab session
+    const dismissed = sessionStorage.getItem("offer:dismissed") === "1";
+    if (dismissed) return;
+
+    const t = setTimeout(() => setShowOffer(true), 2000); // show after 2s
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleCloseOffer = () => {
+    sessionStorage.setItem("offer:dismissed", "1");
+    setShowOffer(false);
+  };
+
+  const handleCtaOffer = () => {
+    sessionStorage.setItem("offer:dismissed", "1");
+    setShowOffer(false);
+  };
 
   useEffect(() => {
     const discountClaimed =
@@ -341,6 +362,9 @@ const PricingPage = () => {
 
   return (
     <div className="animate-fade-in bg-white">
+      {showOffer && (
+        <OfferPopup onClose={handleCloseOffer} onCtaClick={handleCtaOffer} />
+      )}
       {showPaymentGateway && selectedPlan && (
         <PaymentGatewayPage
           plan={selectedPlan}
@@ -461,38 +485,35 @@ const PricingPage = () => {
             <p className="text-lg text-gray-500 mt-2">Insider Sneak-peaks</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-x-12 gap-y-8">
+          <div className="grid md:grid-cols-3 gap-x-12 gap-y-12">
             <div>
-              <AsteriskSeparator className="mt-0" />
               <BenefitItem
                 title={benefitsCol1[0].title}
                 description={benefitsCol1[0].description}
               />
-              <AsteriskSeparator />
+              <div className="h-12"></div>
               <BenefitItem
                 title={benefitsCol1[1].title}
                 description={benefitsCol1[1].description}
               />
             </div>
             <div>
-              <AsteriskSeparator className="mt-0" />
               <BenefitItem
                 title={benefitsCol2[0].title}
                 description={benefitsCol2[0].description}
               />
-              <AsteriskSeparator />
+              <div className="h-12"></div>
               <BenefitItem
                 title={benefitsCol2[1].title}
                 description={benefitsCol2[1].description}
               />
             </div>
             <div>
-              <AsteriskSeparator className="mt-0" />
               <BenefitItem
                 title={benefitsCol3[0].title}
                 description={benefitsCol3[0].description}
               />
-              <AsteriskSeparator />
+              <div className="h-12"></div>
               <BenefitItem
                 title={benefitsCol3[1].title}
                 description={benefitsCol3[1].description}
@@ -507,33 +528,49 @@ const PricingPage = () => {
           Plans and features
         </h2>
         <div className="overflow-x-auto">
-          <div className="min-w-[900px]">
+          <div className="min-w-[900px] border border-gray-200 rounded-lg shadow-sm">
             <div ref={headerRef} />
             <div
-              className={`pt-4 bg-white top-20 z-10 ${
+              className={`bg-gray-50 border-b border-gray-200 top-20 z-10 ${
                 isSticky ? "sticky shadow-md" : ""
               }`}
             >
-              {tableHeaderContent}
+              <div className="grid grid-cols-4 gap-x-4 items-end p-6">
+                <div className="col-span-1"></div>
+                {plansData.map((plan, index) => (
+                  <div key={index} className="text-center px-2">
+                    <h3 className="font-bold text-lg text-brand-dark">{plan.name}</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      <span className="font-bold text-black">{plan.price}</span>
+                      {plan.period && <span className="text-xs block">{plan.period}</span>}
+                    </p>
+                    <button className="mt-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm shadow-sm">
+                      {plan.cta}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 bg-white">
               {featureData.map((categoryData) => (
-                <div key={categoryData.category} className="py-4">
-                  <h4 className="font-semibold text-gray-500 text-sm mb-4 col-span-4 px-2">
-                    {categoryData.category}
-                  </h4>
-                  {categoryData.features.map((feature) => (
+                <div key={categoryData.category}>
+                  <div className="bg-gray-50 px-6 py-3 border-y border-gray-200">
+                    <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">
+                      {categoryData.category}
+                    </h4>
+                  </div>
+                  {categoryData.features.map((feature, idx) => (
                     <div
                       key={feature.name}
-                      className="grid grid-cols-4 gap-x-4 items-center py-3 px-2 border-b border-gray-100 last:border-b-0"
+                      className={`grid grid-cols-4 gap-x-4 items-center py-4 px-6 hover:bg-gray-50 transition-colors ${
+                        idx !== categoryData.features.length - 1 ? "border-b border-gray-100" : ""
+                      }`}
                     >
-                      <div className="col-span-1 text-sm text-gray-800 font-medium">
-                        <span className="border-b border-dotted border-gray-400">
-                          {feature.name}
-                        </span>
+                      <div className="col-span-1 text-sm text-gray-800 font-medium pr-4">
+                        <span>{feature.name}</span>
                       </div>
                       {feature.values.map((value, index) => (
-                        <div key={index} className="col-span-1">
+                        <div key={index} className="col-span-1 flex justify-center">
                           {renderFeatureValue(value)}
                         </div>
                       ))}

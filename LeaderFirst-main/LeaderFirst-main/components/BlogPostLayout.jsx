@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -75,6 +75,7 @@ const BlogPostLayout = ({
   publishedAt,
   currentUser,
   articleId,
+  images = [], // Additional images array
 }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -86,10 +87,40 @@ const BlogPostLayout = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
+  const [showSecondImage, setShowSecondImage] = useState(false); // For scroll-based image display
 
   // Check if current user is admin
   const isUserAdmin = currentUser?.role === "admin";
   const canManagePost = isUserAdmin;
+
+  // Debug logging for images
+  useEffect(() => {
+    console.log("📸 Images array:", images);
+    console.log("📸 Images length:", images?.length);
+    console.log("🖼️ Thumbnail:", thumbnail);
+  }, [images, thumbnail]);
+
+  // Scroll detection for second image
+  useEffect(() => {
+    if (!images || images.length < 2) return;
+
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      // Trigger after just 100px scroll or if content is short
+      const triggerPoint = 100; 
+
+      if (scrollPosition >= triggerPoint && !showSecondImage) {
+        setShowSecondImage(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    // Check immediately on mount
+    handleScroll();
+    
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [images, showSecondImage]);
 
   // Initialize editor for editing
   const editor = useEditor({
@@ -231,7 +262,7 @@ const BlogPostLayout = ({
   return (
     <div className="animate-fade-in">
       <div className="container mx-auto px-4 py-4">
-        <article className="max-w-4xl mx-auto">
+        <article className="max-w-6xl mx-auto">
           {/* Article Header - COMPACT */}
           <header className="mb-6 text-center">
             {isEditing ? (
@@ -252,25 +283,86 @@ const BlogPostLayout = ({
                 />
               </div>
             ) : (
-              <>
+                <>
                 <p className="text-brand-teal font-semibold uppercase tracking-wider text-xs mb-2">
                   {category}
                 </p>
-                <h1 className="text-2xl md:text-3xl font-bold text-brand-dark mb-3 leading-tight">
+                <h1 className="text-3xl md:text-5xl font-bold text-brand-dark mb-3 leading-tight">
                   {title}
                 </h1>
               </>
             )}
           </header>
 
-          {/* Main Image - COMPACT */}
-          {thumbnail?.url && !isEditing && (
-            <div className="mb-6">
-              <img
-                src={thumbnail.url}
-                alt={thumbnail.alt || title}
-                className="w-[600px] max-h-[400px] rounded-lg shadow-lg object-cover"
-              />
+          {/* Main Content Section - Single column layout */}
+          {!isEditing && (
+            <div className="mb-8">
+              {/* Full-width image at top */}
+              <div className="mb-8">
+                {images && images.length > 0 ? (
+                  <img
+                    src={images[0].url}
+                    alt={images[0].alt || title}
+                    className="w-full max-h-[600px] rounded-lg shadow-lg object-cover"
+                  />
+                ) : thumbnail?.url ? (
+                  <img
+                    src={thumbnail.url}
+                    alt={thumbnail.alt || title}
+                    className="w-full max-h-[600px] rounded-lg shadow-lg object-cover"
+                  />
+                ) : null}
+              </div>
+              
+              {/* Article content below image */}
+              <div>
+                <div
+                  className="article-content"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
+                
+                {/* Second Image - appears after scrolling (small scroll) */}
+                {images && images.length >= 2 && showSecondImage && (
+                  <div className="my-8 animate-fade-in">
+                    <img
+                      src={images[1].url}
+                      alt={images[1].alt || title}
+                      className="w-full max-h-[500px] rounded-lg shadow-lg object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Additional images gallery (any images after the first and second) */}
+                {images && images.length > 2 && (
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold text-brand-dark mb-4">
+                      More Images
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {images.slice(2).map((img, idx) => (
+                        <div key={idx} className="overflow-hidden rounded-lg shadow-sm">
+                          <img
+                            src={img.url}
+                            alt={img.alt || `${title} - image ${idx + 3}`}
+                            className="w-full h-40 md:h-48 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Edit mode - still show article only */}
+          {isEditing && (
+            <div className="border border-gray-300 rounded-lg p-3">
+              <MenuBar editor={editor} />
+              <div className="border border-gray-200 rounded-md min-h-[400px] p-3">
+                <EditorContent editor={editor} />
+              </div>
             </div>
           )}
 
@@ -323,21 +415,6 @@ const BlogPostLayout = ({
             <div className="mb-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
               {updateSuccess}
             </div>
-          )}
-
-          {/* Article Body - COMPACT */}
-          {isEditing ? (
-            <div className="border border-gray-300 rounded-lg p-3">
-              <MenuBar editor={editor} />
-              <div className="border border-gray-200 rounded-md min-h-[400px] p-3">
-                <EditorContent editor={editor} />
-              </div>
-            </div>
-          ) : (
-            <div
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
           )}
         </article>
       </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Insights from "./Insights";
 import CtaSection from "./CtaSection";
+<<<<<<< HEAD
 import OfferPopup from "./OfferPopUp";
 import TrendingStrip from "./TrendingStrip";
 import NewsletterBand from "./NewsLetterBand";
@@ -52,6 +53,14 @@ const HomePage = ({ posts, currentUser }) => {
       {showOffer && (
         <OfferPopup onClose={handleCloseOffer} onCtaClick={handleCtaOffer} />
       )}
+=======
+
+const HomePage = ({ posts, currentUser }) => {
+  return (
+    <main>
+      <Insights posts={posts} />
+      <CtaSection currentUser={currentUser} />
+>>>>>>> f92ba7848c336b2546129824173235d924194576
     </main>
   );
 };

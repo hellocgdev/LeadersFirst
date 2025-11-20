@@ -9,6 +9,7 @@ const ArticlePreviewModal = ({
   labels,
   publishedAt,
   author,
+  images = [], // Support additional images in preview
 }) => {
   if (!open) return null;
 
@@ -38,14 +39,20 @@ const ArticlePreviewModal = ({
         {/* Content */}
         <div className="overflow-y-auto flex-1">
           <article className="max-w-3xl mx-auto px-8 py-12">
-            {/* Thumbnail */}
-            {thumbnail && (
+            {/* Thumbnail / Cover Image */}
+            {images && images.length > 0 ? (
+              <img
+                src={images[0].url || images[0]} // Handle object or string (preview might pass strings)
+                alt={title || "Article Cover"}
+                className="w-full h-96 object-cover rounded-lg shadow-lg mb-8"
+              />
+            ) : thumbnail ? (
               <img
                 src={thumbnail}
                 alt={title || "Article"}
                 className="w-full h-96 object-cover rounded-lg shadow-lg mb-8"
               />
-            )}
+            ) : null}
 
             {/* Title */}
             <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4 leading-tight">
@@ -86,6 +93,42 @@ const ArticlePreviewModal = ({
                 <p className="text-gray-500 italic">No content yet...</p>
               )}
             </div>
+
+            {/* Additional Images Preview */}
+            {images && images.length > 1 && (
+              <div className="mt-12 pt-8 border-t border-gray-200">
+                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">
+                  Gallery
+                </h3>
+                <div className="space-y-8">
+                  {/* Second Image (Scroll Image) */}
+                  {images[1] && (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">Scroll Image:</p>
+                      <img
+                        src={images[1].url || images[1]}
+                        alt="Scroll View"
+                        className="w-full h-auto rounded-lg shadow-md"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Gallery Grid */}
+                  {images.length > 2 && (
+                    <div className="grid grid-cols-2 gap-4">
+                      {images.slice(2).map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img.url || img}
+                          alt={`Gallery ${idx + 1}`}
+                          className="w-full h-48 object-cover rounded-lg shadow-sm"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </article>
         </div>
 

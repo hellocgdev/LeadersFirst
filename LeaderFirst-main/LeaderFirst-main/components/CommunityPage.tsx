@@ -2,11 +2,11 @@ import React from 'react';
 
 const CommunityPage: React.FC = () => {
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pl-20 pr-10">
       {/* "What's Inside?" Section - Moved to top */}
-      <section className="py-20 bg-white text-center">
+      <section className="py-10 bg-white text-center">
         <div className="container mx-auto px-6">
-          <h1 className="font-serif text-5xl md:text-6xl font-bold text-brand-dark mb-6">What's Inside?</h1>
+          <h1 className="font-serif text-5xl pt-10 md:text-6xl font-bold text-brand-dark mb-6">What's Inside?</h1>
           <p className="max-w-3xl mx-auto text-lg text-brand-text leading-relaxed">
             The Leaders First members run the fastest growing startups in the world, across a wide array of industries. Some are bootstrapped, others venture-backed. But all our members seek to socialise and connect with only a selective group of peers.
           </p>
@@ -53,7 +53,7 @@ const CommunityPage: React.FC = () => {
             {/* Image on the left */}
             <div className="flex justify-center">
               <img 
-                src="https://theleadersfirst.com/wp-content/uploads/2023/11/guy-kawasaki-2q3JHgR2MK8-unsplash-1536x1024.jpg" 
+                src="https://media.istockphoto.com/id/625741228/photo/exchanging-ideas-in-the-boardroom.jpg?s=612x612&w=0&k=20&c=_rF9PqS_sggjBVxKLtGk-Hv8_x4GrmWj3HX6VzqcqV8=" 
                 alt="A group of people collaborating" 
                 className="rounded-lg shadow-xl w-full max-w-lg h-auto object-cover"
               />
