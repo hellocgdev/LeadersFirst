@@ -233,11 +233,11 @@ const BlogPage = () => {
             {category && (
               <div className="mt-8 flex items-center justify-center gap-3">
                 <span className="text-gray-600 font-medium">Filtered by:</span>
-                <span className="inline-flex items-center gap-2 bg-brand-teal text-white px-4 py-2 rounded-full font-semibold">
+                <span className="inline-flex items-center gap-2 bg-brand-teal text-black px-4 py-2 rounded-full font-semibold">
                   {category}
                   <button
                     onClick={handleClearCategory}
-                    className="hover:text-gray-100 transition-colors ml-1 font-bold cursor-pointer text-lg leading-none"
+                    className=" transition-colors ml-1 font-bold cursor-pointer text-lg leading-none"
                     title="Clear filter"
                     aria-label="Clear category filter"
                   >
@@ -253,13 +253,15 @@ const BlogPage = () => {
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {posts.map((post) => (
-                    <InsightCard
+                  <InsightCard
                     key={post._id}
-                      id={post._id}
-                      imageUrl={post.images?.[0]?.url || post.thumbnail?.url || ""}
+                    id={post._id}
+                    imageUrl={
+                      post.images?.[0]?.url || post.thumbnail?.url || ""
+                    }
                     category={post.category}
-                      title={post.title}
-                      excerpt={getExcerpt(post.content)}
+                    title={post.title}
+                    excerpt={getExcerpt(post.content)}
                     author={post.author?.name || post.author?.email}
                     date={formatDate(post.publishedAt)}
                     imageError={imageErrors[post._id]}
