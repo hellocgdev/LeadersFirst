@@ -103,6 +103,7 @@ const BlogPostWrapper = () => {
       publishedAt={post.publishedAt}
       currentUser={currentUser}
       articleId={post._id}
+      images={post.images || []} // Pass images array
     />
   );
 };

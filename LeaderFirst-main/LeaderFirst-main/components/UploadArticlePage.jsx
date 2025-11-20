@@ -208,6 +208,8 @@ const UploadArticlePage = () => {
   const [labels, setLabels] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
+  const [additionalImages, setAdditionalImages] = useState([]); // For multiple additional images
+  const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -223,6 +225,7 @@ const UploadArticlePage = () => {
 
   const contentImageInputRef = useRef(null);
   const thumbnailInputRef = useRef(null);
+  const additionalImagesInputRef = useRef(null); // For additional images
   const docxInputRef = useRef(null);
   const hasLoadedArticles = useRef(false);
 
@@ -417,6 +420,31 @@ const UploadArticlePage = () => {
     reader.readAsDataURL(file);
   };
 
+  // Additional Images Handler
+  const handleAdditionalImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Limit to 5 additional images
+    const limitedFiles = files.slice(0, 5);
+    setAdditionalImages((prev) => [...prev, ...limitedFiles].slice(0, 5));
+
+    // Generate previews
+    limitedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAdditionalImagePreviews((prev) => [...prev, reader.result].slice(0, 5));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Remove additional image
+  const handleRemoveAdditionalImage = (index) => {
+    setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
+    setAdditionalImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Drag and drop
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -469,18 +497,42 @@ const UploadArticlePage = () => {
     setIsUploading(true);
 
     try {
-      const thumbFormData = new FormData();
-      thumbFormData.append("thumbnail", thumbnailFile);
       const baseUrl = import.meta.env.VITE_API_BASE;
+      
+      // Upload thumbnail
+      let thumbnailData = {};
+      if (thumbnailFile) {
+        const thumbFormData = new FormData();
+        thumbFormData.append("thumbnail", thumbnailFile);
+        const thumbRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: thumbFormData,
+        });
+        if (thumbRes.ok) {
+          thumbnailData = await thumbRes.json();
+        }
+      }
 
-      const thumbRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: thumbFormData,
-      });
-
-      // if (!thumbRes.ok) throw new Error("Thumbnail upload failed");
-      const thumbData = await thumbRes.json();
+      // Upload additional images
+      const uploadedImages = [];
+      for (const imageFile of additionalImages) {
+        const imgFormData = new FormData();
+        imgFormData.append("thumbnail", imageFile);
+        const imgRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: imgFormData,
+        });
+        if (imgRes.ok) {
+          const imgData = await imgRes.json();
+          uploadedImages.push({
+            url: imgData.url,
+            publicId: imgData.publicId,
+            alt: titleValue,
+          });
+        }
+      }
 
       const res = await fetch(`${baseUrl}/api/articles`, {
         method: "POST",
@@ -492,11 +544,12 @@ const UploadArticlePage = () => {
           title: titleValue,
           content,
           category: labelsValue,
-          thumbnail: {
-            url: thumbData.url,
-            publicId: thumbData.publicId,
+          thumbnail: thumbnailData.url ? {
+            url: thumbnailData.url,
+            publicId: thumbnailData.publicId,
             alt: titleValue,
-          },
+          } : undefined,
+          images: uploadedImages, // Add the additional images array
           publishedAt: new Date().toISOString(),
         }),
       });
@@ -522,6 +575,8 @@ const UploadArticlePage = () => {
         setLabels("");
         setThumbnailFile(null);
         setThumbnailPreview("");
+        setAdditionalImages([]);
+        setAdditionalImagePreviews([]);
         editor?.commands.setContent("");
         setAllArticles((prev) => [data.data, ...prev]);
         setTimeout(() => navigate("/upload-article"), 1500);
@@ -723,6 +778,54 @@ const UploadArticlePage = () => {
 
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Additional Images (Optional)
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              First image = cover. Second image appears after scrolling 1.5x screen height. Max 5 images.
+            </p>
+            <input
+              ref={additionalImagesInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleAdditionalImagesChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => additionalImagesInputRef.current?.click()}
+              disabled={additionalImages.length >= 5}
+              className="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-200 disabled:text-gray-400 text-blue-800 rounded font-medium text-sm transition"
+            >
+              {additionalImages.length >= 5 ? "Max 5 Images" : `Add Images (${additionalImages.length}/5)`}
+            </button>
+            {additionalImagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {additionalImagePreviews.map((preview, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={preview}
+                      alt={`Additional ${index + 1}`}
+                      className="w-full h-20 object-cover rounded-lg shadow-sm border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAdditionalImage(index)}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ✕
+                    </button>
+                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                      {index === 0 ? "Cover" : index === 1 ? "Scroll" : `#${index + 1}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Category
             </label>
             <select
@@ -795,6 +898,7 @@ const UploadArticlePage = () => {
         labels={labels}
         publishedAt={publishedAt}
         author={user?.email || "Anonymous"}
+        images={additionalImagePreviews} // Pass preview images
       />
       <PaywallModal
         open={showPaywall}
