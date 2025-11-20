@@ -157,7 +157,7 @@ const Insights = () => {
   ];
 
   return (
-    <section className="py-20 bg-[#FBF9F6]">
+    <section className="py-8 bg-[#FBF9F6]">
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -192,7 +192,7 @@ const Insights = () => {
                   The Leaders First
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 transition-colors duration-200 group-hover:text-[#0F766E]">
+              <h3 className="text-xl font-semibold font-serif text-gray-900 transition-colors duration-200 group-hover:text-[#0F766E]">
                 {leftTopArticle.title}
               </h3>
             </Link>
@@ -206,7 +206,7 @@ const Insights = () => {
                   <p className="text-sm font-semibold text-blue-700 uppercase">
                     {leftBottomArticle.category}
                   </p>
-                  <h4 className="font-semibold text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
+                  <h4 className="font-semibold font-serif text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
                     {leftBottomArticle.title}
                   </h4>
                 </div>
@@ -262,7 +262,7 @@ const Insights = () => {
             <p className="text-sm font-bold uppercase tracking-wider text-blue-700 mb-2">
               {mainArticle.category}
             </p>
-            <h2 className="text-3xl lg:text-4xl font-semibold text-gray-900 mb-3 leading-tight transition-colors duration-200 group-hover:text-[#0F766E]">
+            <h2 className="text-3xl lg:text-4xl font-semibold font-serif text-gray-900 mb-3 leading-tight transition-colors duration-200 group-hover:text-[#0F766E]">
               {mainArticle.title}
             </h2>
             <p className="text-gray-600 mb-4">
@@ -279,7 +279,7 @@ const Insights = () => {
           {/* Right Column - Latest Articles */}
           <div className="lg:col-span-1">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-semibold text-gray-900">Latest</h3>
+              <h3 className="text-2xl font-semibold font-serif text-gray-900">Latest</h3>
               <Link
                 to="/blog"
                 className="text-sm font-semibold text-blue-700 hover:underline"
@@ -339,7 +339,7 @@ const Insights = () => {
                 <p className="text-xs font-semibold text-blue-700 uppercase mb-2">
                   {article.category}
                 </p>
-                <h4 className="font-semibold text-gray-800 line-clamp-3 transition-colors duration-200 group-hover:text-[#0F766E]">
+                <h4 className="font-semibold font-serif text-gray-800 line-clamp-3 transition-colors duration-200 group-hover:text-[#0F766E]">
                   {article.title}
                 </h4>
               </Link>

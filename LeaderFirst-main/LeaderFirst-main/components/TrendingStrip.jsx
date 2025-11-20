@@ -15,7 +15,7 @@ const TrendingStrip = ({ articles = [] }) => {
             <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500 mb-2">
               What readers are into
             </p>
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+            <h2 className="text-xl md:text-2xl font-semibold font-serif text-gray-900">
               Trending this week
             </h2>
           </div>
@@ -47,7 +47,7 @@ const TrendingStrip = ({ articles = [] }) => {
                     {a.category}
                   </p>
                 )}
-                <p className="text-sm md:text-[15px] font-medium text-gray-900 leading-snug group-hover:text-blue-700 line-clamp-2">
+                <p className="text-sm md:text-[15px] font-medium font-serif text-gray-900 leading-snug group-hover:text-blue-700 line-clamp-2">
                   {a.title}
                 </p>
               </div>

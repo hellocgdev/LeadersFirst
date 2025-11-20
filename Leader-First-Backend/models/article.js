@@ -29,6 +29,18 @@ const articleSchema = new mongoose.Schema(
       publicId: String, // For Cloudinary/AWS deletion
     },
 
+    // Additional images for the article (optional)
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        alt: String,
+        publicId: String,
+      },
+    ],
+
     category: {
       type: String,
       required: true,

@@ -78,7 +78,7 @@ const OfferPopup: React.FC<OfferPopupProps> = ({ onClose, onCtaClick }) => {
             ⚡️ FLASH SALE
           </div>
 
-          <h1 className="font-serif font-bold text-7xl md:text-8xl text-white drop-shadow-lg">
+          <h1 className="font-serif font-semibold text-7xl md:text-8xl text-white drop-shadow-lg">
             70%
             <span className="block text-5xl md:text-6xl -mt-2">OFF</span>
           </h1>

@@ -6,7 +6,7 @@ const CommunityPage: React.FC = () => {
       {/* "What's Inside?" Section - Moved to top */}
       <section className="py-10 bg-white text-center">
         <div className="container mx-auto px-6">
-          <h1 className="font-serif text-5xl pt-10 md:text-6xl font-bold text-brand-dark mb-6">What's Inside?</h1>
+          <h1 className="font-serif text-5xl pt-10 md:text-6xl font-semibold text-brand-dark mb-6">What's Inside?</h1>
           <p className="max-w-3xl mx-auto text-lg text-brand-text leading-relaxed">
             The Leaders First members run the fastest growing startups in the world, across a wide array of industries. Some are bootstrapped, others venture-backed. But all our members seek to socialise and connect with only a selective group of peers.
           </p>

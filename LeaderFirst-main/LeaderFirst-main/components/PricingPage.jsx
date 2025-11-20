@@ -199,7 +199,7 @@ const PricingPage = () => {
       core: {
         name: "Core Group",
         cta: "Get started",
-        featuresIntro: "Everything in Contributor, plus:",
+        featuresIntro: "Everything in Core Group, plus:",
         features: [
           "Placement in a curated Core Group",
           "Monthly facilitated peer group sessions",
@@ -207,9 +207,8 @@ const PricingPage = () => {
           "Direct access to an executive facilitator",
           "Annual in-person retreat",
         ],
-        aiTitle: "Executive Coaching",
+        aiTitle: "Enhanced Privileges",
         aiFeatures: [
-          "1-on-1 coaching session (Quarterly)",
           "Personalized growth plan",
           "Priority support",
         ],
@@ -218,7 +217,7 @@ const PricingPage = () => {
       enterprise: {
         name: "Enterprise",
         cta: "Get started",
-        featuresIntro: "Everything in Core Group, plus:",
+        featuresIntro: "Everything in Enterprise, plus:",
         features: [
           "Private Core Groups for your team",
           "On-site workshops and training",
@@ -265,21 +264,21 @@ const PricingPage = () => {
         ...basePlans.contributor,
         price: { quarterly: 174 },
         description:
-          "3 articles per quarter. For active members seeking growth and connection.",
+          "2+1 articles per quarter. For active members seeking growth and connection.",
         articlesPerQuarter: 3,
       },
       core: {
         ...basePlans.core,
         price: { quarterly: 354 },
         description:
-          "9 articles per quarter. For dedicated founders seeking peer advisory.",
+          "7+2 articles per quarter. For dedicated founders seeking peer advisory.",
         articlesPerQuarter: 9,
       },
       enterprise: {
         ...basePlans.enterprise,
         price: { quarterly: 534 },
         description:
-          "15 articles per quarter. Custom solutions for leadership teams.",
+          "12+3 articles per quarter. Custom solutions for leadership teams.",
         articlesPerQuarter: 15,
       },
     };
@@ -373,10 +372,10 @@ const PricingPage = () => {
         />
       )}
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center">
-            <h1 className="font-serif text-5xl md:text-6xl font-bold text-brand-dark mb-4">
+            <h1 className="font-serif text-5xl md:text-6xl font-semibold text-brand-dark mb-4">
               Plans & Pricing
             </h1>
             <p className="max-w-2xl mx-auto text-lg text-gray-600 mb-8">
@@ -390,7 +389,7 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-5xl mx-auto">
             {Object.values(plans).map((plan) => (
@@ -479,13 +478,13 @@ const PricingPage = () => {
       <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-5xl font-bold text-brand-dark">
+            <h2 className="font-serif text-5xl font-semibold text-brand-dark">
               Member Benefits
             </h2>
             <p className="text-lg text-gray-500 mt-2">Insider Sneak-peaks</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-x-12 gap-y-12">
+          <div className="grid md:grid-cols-3 pl-14 pr-10 gap-x-12 gap-y-12">
             <div>
               <BenefitItem
                 title={benefitsCol1[0].title}
@@ -586,7 +585,7 @@ const PricingPage = () => {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6 max-w-3xl">
           <div className="text-center mb-12">
-            <h2 className="font-serif text-4xl font-bold text-brand-dark">
+            <h2 className="font-serif text-4xl font-semibold text-brand-dark">
               Questions & answers
             </h2>
           </div>

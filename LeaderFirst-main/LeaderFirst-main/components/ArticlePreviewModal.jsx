@@ -55,7 +55,7 @@ const ArticlePreviewModal = ({
             ) : null}
 
             {/* Title */}
-            <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-5xl font-serif font-semibold text-gray-900 mb-4 leading-tight">
               {title || "Untitled Article"}
             </h1>
 
@@ -78,7 +78,7 @@ const ArticlePreviewModal = ({
 
             {/* Content with proper image rendering */}
             <div
-              className="prose prose-lg prose-gray max-w-none prose-headings:font-serif prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-brand-teal prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-700"
+              className="prose prose-lg prose-gray max-w-none prose-headings:font-serif prose-headings:font-semibold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-brand-teal prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-700"
               style={{
                 wordBreak: "break-word",
                 overflowWrap: "break-word",
@@ -97,7 +97,7 @@ const ArticlePreviewModal = ({
             {/* Additional Images Preview */}
             {images && images.length > 1 && (
               <div className="mt-12 pt-8 border-t border-gray-200">
-                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">
+                <h3 className="text-2xl font-serif font-semibold text-gray-900 mb-6">
                   Gallery
                 </h3>
                 <div className="space-y-8">

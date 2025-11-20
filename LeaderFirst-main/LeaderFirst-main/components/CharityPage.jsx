@@ -110,7 +110,7 @@ const DonationPage = () => {
             className="max-w-4xl mx-auto px-4 pt-2 pb-2 md:pt-10 md:pb-20
  text-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 font-serif">
+            <h1 className="text-4xl md:text-6xl font-semibold text-gray-900 mb-6 font-serif">
               Support Our Mission
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
@@ -126,7 +126,7 @@ const DonationPage = () => {
             {/* Impact Section */}
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 font-serif">
+                <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-6 font-serif">
                   Your Impact
                 </h2>
                 <div className="space-y-6">
@@ -254,7 +254,7 @@ const DonationPage = () => {
             {/* Donation Form */}
             <div>
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 font-serif">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6 font-serif">
                   Make a Donation
                 </h2>
 
@@ -374,7 +374,7 @@ const DonationPage = () => {
 
           {/* FAQ Section */}
           <div className="border-t pt-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 font-serif text-center">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-8 font-serif text-center">
               Frequently Asked Questions
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">

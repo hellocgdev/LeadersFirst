@@ -17,7 +17,7 @@ function parseDateOrNull(value) {
 
 export const create = async (req, res) => {
   try {
-    const { title, content, thumbnail, category, publishedAt, slug } = req.body;
+    const { title, content, thumbnail, category, publishedAt, slug, images } = req.body;
     const author = req.user?._id || req.user?.id;
 
     if (!author) return fail(res, "User not authenticated", 401);
@@ -57,6 +57,11 @@ export const create = async (req, res) => {
         alt: thumbnail.alt || title,
         publicId: thumbnail.publicId || null,
       };
+    }
+
+    // ADD IMAGES ARRAY IF PROVIDED
+    if (images && Array.isArray(images) && images.length > 0) {
+      articleData.images = images;
     }
 
     if (slug) articleData.slug = slug;

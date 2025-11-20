@@ -76,7 +76,7 @@ const FaqPage: React.FC = () => {
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold text-brand-dark mb-4 font-serif">Frequently Asked Questions</h1>
+            <h1 className="text-5xl md:text-6xl font-semibold text-brand-dark mb-4 font-serif">Frequently Asked Questions</h1>
             <p className="max-w-2xl mx-auto text-lg text-gray-600">
               Everything you need to know about The Leaders First membership.
             </p>
