@@ -1,5 +1,8 @@
+// src/components/Insights.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
+const ACCENT = "#0F766E"; // hover color for titles
 
 // Shuffle helper for array
 const shuffleArray = (array = []) => {
@@ -55,7 +58,6 @@ const Insights = () => {
         if (data.data && Array.isArray(data.data)) {
           setArticles(data.data);
 
-          // Shuffle if we have at least 7 articles
           if (data.data.length >= 7) {
             setShuffledArticles(shuffleArray(data.data));
           } else {
@@ -159,7 +161,7 @@ const Insights = () => {
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column - FIXED */}
+          {/* Left Column */}
           <div className="lg:col-span-1 space-y-8">
             <Link
               to={`/blog/${leftTopArticle._id}`}
@@ -190,7 +192,7 @@ const Insights = () => {
                   The Leaders First
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 group-hover:text-brand-teal transition-colors">
+              <h3 className="text-xl font-semibold text-gray-900 transition-colors duration-200 group-hover:text-[#0F766E]">
                 {leftTopArticle.title}
               </h3>
             </Link>
@@ -204,7 +206,7 @@ const Insights = () => {
                   <p className="text-sm font-semibold text-blue-700 uppercase">
                     {leftBottomArticle.category}
                   </p>
-                  <h4 className="font-semibold text-gray-800 group-hover:text-brand-teal transition-colors">
+                  <h4 className="font-semibold text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
                     {leftBottomArticle.title}
                   </h4>
                 </div>
@@ -231,7 +233,7 @@ const Insights = () => {
             </div>
           </div>
 
-          {/* Center Column - Main Article - FIXED */}
+          {/* Center Column - Main Article */}
           <Link
             to={`/blog/${mainArticle._id}`}
             className="lg:col-span-2 cursor-pointer group block focus:outline-none"
@@ -260,7 +262,7 @@ const Insights = () => {
             <p className="text-sm font-bold uppercase tracking-wider text-blue-700 mb-2">
               {mainArticle.category}
             </p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 leading-tight group-hover:text-brand-teal transition-colors">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-gray-900 mb-3 leading-tight transition-colors duration-200 group-hover:text-[#0F766E]">
               {mainArticle.title}
             </h2>
             <p className="text-gray-600 mb-4">
@@ -271,14 +273,13 @@ const Insights = () => {
               {mainArticle.author?.name ||
                 mainArticle.author?.email ||
                 "Anonymous"}{" "}
-              • {getRelativeTime(mainArticle.publishedAt)}
             </p>
           </Link>
 
           {/* Right Column - Latest Articles */}
           <div className="lg:col-span-1">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-gray-900">Latest</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Latest</h3>
               <Link
                 to="/blog"
                 className="text-sm font-semibold text-blue-700 hover:underline"
@@ -296,7 +297,7 @@ const Insights = () => {
                   <p className="text-xs font-semibold uppercase text-gray-500 mb-1">
                     {article.time}
                   </p>
-                  <h4 className="font-bold text-gray-800 group-hover:text-brand-teal transition-colors">
+                  <h4 className="font-semibold text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
                     {article.title}
                   </h4>
                 </Link>
@@ -305,7 +306,7 @@ const Insights = () => {
           </div>
         </div>
 
-        {/* Bottom Grid - FIXED */}
+        {/* Bottom Grid */}
         <div className="mt-16 pt-12 border-t border-gray-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {bottomGridArticles.map((article) => (
@@ -338,7 +339,7 @@ const Insights = () => {
                 <p className="text-xs font-semibold text-blue-700 uppercase mb-2">
                   {article.category}
                 </p>
-                <h4 className="font-semibold text-gray-800 group-hover:text-brand-teal transition-colors line-clamp-3">
+                <h4 className="font-semibold text-gray-800 line-clamp-3 transition-colors duration-200 group-hover:text-[#0F766E]">
                   {article.title}
                 </h4>
               </Link>
