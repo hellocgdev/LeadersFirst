@@ -54,17 +54,17 @@ export const InsightCard = ({
     {/* Content Container */}
     <div className="p-6">
       {/* Category */}
-      <p className="text-brand-teal font-semibold uppercase tracking-wider text-sm mb-2">
+      <p className="text-brand-teal font-semibold uppercase tracking-wider text-xs mb-3">
         {category}
       </p>
 
       {/* Title */}
-      <h3 className="text-xl font-bold text-brand-dark mb-3 h-14 overflow-hidden line-clamp-2 group-hover:text-brand-teal transition-colors">
+      <h3 className="text-2xl font-bold text-brand-dark mb-3 h-16 overflow-hidden line-clamp-2 group-hover:text-brand-teal transition-colors">
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-gray-600 text-sm h-20 overflow-hidden line-clamp-3">
+      <p className="text-gray-600 text-base h-24 overflow-hidden line-clamp-3">
         {excerpt}
       </p>
 
@@ -218,11 +218,11 @@ const BlogPage = () => {
 
   return (
     <div className="animate-fade-in">
-      <section className="py-20">
+      <section className="py-10">
         <div className="container mx-auto px-6">
           {/* Header */}
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold text-brand-dark mb-4 font-serif">
+            <h1 className="text-6xl md:text-7xl font-bold text-brand-dark mb-4 font-serif leading-tight">
               {pageTitle}
             </h1>
             <p className="max-w-2xl mx-auto text-lg text-gray-600">
@@ -251,15 +251,15 @@ const BlogPage = () => {
           {/* Articles Grid */}
           {posts.length > 0 ? (
             <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {posts.map((post) => (
-                  <InsightCard
+                    <InsightCard
                     key={post._id}
-                    id={post._id}
-                    imageUrl={post.thumbnail?.url || ""}
+                      id={post._id}
+                      imageUrl={post.images?.[0]?.url || post.thumbnail?.url || ""}
                     category={post.category}
-                    title={post.title}
-                    excerpt={getExcerpt(post.content)}
+                      title={post.title}
+                      excerpt={getExcerpt(post.content)}
                     author={post.author?.name || post.author?.email}
                     date={formatDate(post.publishedAt)}
                     imageError={imageErrors[post._id]}

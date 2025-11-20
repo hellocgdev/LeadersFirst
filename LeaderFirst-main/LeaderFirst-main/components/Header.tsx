@@ -258,7 +258,7 @@ const Header = ({ currentUser, onLogout }) => {
             The Leaders First
           </Link>
 
-          <nav className="hidden lg:flex items-center space-x-8 text-brand-dark font-medium">
+          <nav className="hidden pl-50 lg:flex items-center space-x-8 text-brand-dark font-medium">
             {navLinks}
           </nav>
 
@@ -284,6 +284,14 @@ const Header = ({ currentUser, onLogout }) => {
           </nav>
         </div>
       )}
+
+      <div className=" bg-red-500 text-white text-center py-2 text-sm font-medium">
+        Ready to share your insights?{" "}
+        <Link to="/upload-article" className="underline hover:text-teal-100 ml-1">
+          Post your first free article
+        </Link>{" "}
+        and get featured as an author!
+      </div>
     </header>
   );
 };
