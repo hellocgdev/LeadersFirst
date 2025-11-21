@@ -56,7 +56,7 @@ const EditorsPicks = ({ articles = [] }) => {
                     {primary.category}
                   </p>
                 )}
-                <h3 className="text-xl md:text-2xl font-semibold font-serif text-gray-900 group-hover:text-blue-700 mb-3 leading-snug">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 group-hover:text-blue-700 mb-3 leading-snug">
                   {primary.title}
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 flex-1">
@@ -82,7 +82,7 @@ const EditorsPicks = ({ articles = [] }) => {
                     {article.category}
                   </p>
                 )}
-                <h4 className="text-base font-semibold font-serif text-gray-900 leading-snug mb-1">
+                <h4 className="text-base font-semibold text-gray-900 leading-snug mb-1">
                   <span className="relative inline-block transition-colors group-hover:text-blue-700">
                     {article.title}
                     <span
