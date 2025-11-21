@@ -10,7 +10,7 @@ const BenefitItem = ({ title, description }) => (
 
 const CheckIcon = () => (
   <svg
-    className="w-5 h-5 text-brand-dark mr-3 flex-shrink-0"
+    className="w-5 h-5 text-brand-dark mr-3 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon } from "./icons/Icons";
 import { api } from "../lib/api";
+import DonationPage from "./CharityPage";
 
 const categoryItems = [
   { label: "Leadership", description: "Leading teams, strategy & vision." },
@@ -144,12 +145,12 @@ const Header = ({ currentUser, onLogout }) => {
         Community
       </Link>
 
-      <Link
+      {/* <Link
         to="/perks"
         className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
       >
         Perks
-      </Link>
+      </Link> */}
 
       <Link
         to="/blog"
@@ -166,7 +167,7 @@ const Header = ({ currentUser, onLogout }) => {
       >
         <button
           type="button"
-          className={`group flex items-center gap-1 text-sm font-medium font-serif px-3 py-2 rounded-full transition-all duration-200
+          className={`group flex items-center gap-1 text-md font-medium font-serif px-3 py-2 rounded-full transition-all duration-200
             ${
               isDropdownOpen
                 ? "bg-gray-100 text-black"
@@ -192,6 +193,12 @@ const Header = ({ currentUser, onLogout }) => {
           </svg>
         </button>
       </div>
+      <Link
+        to="/donations"
+        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
+      >
+        Contribute to Charity
+      </Link>
 
       {/* MEGA MENU PANEL 
          - Added 'top-[calc(100%+0.5rem)]' for perfect spacing 
@@ -349,7 +356,7 @@ const Header = ({ currentUser, onLogout }) => {
     <>
       {/* Main Header Navbar */}
       <header
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 border-b border-transparent
+        className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 border-b border-transparent
           ${
             isScrolled
               ? "bg-white/90 backdrop-blur-md shadow-sm border-gray-200 py-3"
@@ -359,12 +366,11 @@ const Header = ({ currentUser, onLogout }) => {
         <div className="container mx-auto px-6 md:px-8">
           <div className="flex justify-between items-center relative">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 group">
+            <Link to="/" className="shrink-0 group">
               <span className="text-xl md:text-2xl font-serif font-semibold text-gray-900 tracking-tight group-hover:opacity-80 transition-opacity">
                 The Leaders First
               </span>
             </Link>
-
             {/* Desktop Nav - Relative for Dropdown Positioning */}
             <nav className="hidden pl-30 lg:flex items-center gap-8 relative">
               {navLinks}
@@ -389,7 +395,7 @@ const Header = ({ currentUser, onLogout }) => {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[90] bg-white pt-24 px-6 lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 z-90 bg-white pt-24 px-6 lg:hidden overflow-y-auto">
           <nav className="flex font-serif flex-col space-y-6 text-center">
             {categoryItems.map((cat) => (
               <button
@@ -422,6 +428,13 @@ const Header = ({ currentUser, onLogout }) => {
             >
               Blog
             </Link>
+            <Link
+              to="/donations"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg font-medium font-serif text-gray-600"
+            >
+              Donate for a Cause
+            </Link>
             <div className="pt-4">{authLinksMobile}</div>
           </nav>
         </div>
@@ -430,7 +443,7 @@ const Header = ({ currentUser, onLogout }) => {
       {/* Bottom Announcement Bar - Styled Premium */}
       {/* Added padding-top to body implicitly via the fixed header, but here acts as a sticky bottom or standard bottom bar */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[100] lg:top-[calc(100%-theme(spacing.10))] lg:bottom-auto transition-transform duration-300 ${
+        className={`fixed bottom-0 left-0 right-0 z-100 lg:top-[calc(100%-(--spacing(10)))] lg:bottom-auto transition-transform duration-300 ${
           isMenuOpen ? "hidden" : ""
         }`}
       >

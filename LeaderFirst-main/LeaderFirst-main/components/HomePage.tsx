@@ -4,7 +4,7 @@ import CtaSection from "./CtaSection";
 import OfferPopup from "./OfferPopUp";
 import TrendingStrip from "./TrendingStrip";
 import EditorsPicks from "./EditorsPicks";
-import NewsletterBand from "./NewsletterBand";
+import NewsLetterBand from "./NewsLetterBand";
 
 const HomePage = ({ posts, currentUser }) => {
   const [showOffer, setShowOffer] = useState(false);
@@ -44,11 +44,11 @@ const HomePage = ({ posts, currentUser }) => {
 
   return (
     <main>
-      <Insights posts={posts} />
+      <Insights />
       <EditorsPicks articles={editorsPickArticles} />
       <TrendingStrip articles={trendingArticles} />
       {/* <CtaSection currentUser={currentUser} /> */}
-      <NewsletterBand />
+      <NewsLetterBand onSubmit={undefined} />
       {showOffer && (
         <OfferPopup onClose={handleCloseOffer} onCtaClick={handleCtaOffer} />
       )}
