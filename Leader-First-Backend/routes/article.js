@@ -1,19 +1,65 @@
+// routes/articleRoutes.js
 import express from "express";
 import articleController from "../controller/articleController.js";
-import auth from "../middleware/auth.js";
-import { publishGate } from "../middleware/publishGate.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes
-router.get("/", articleController.list);
-router.get("/category/:category", articleController.getByCategory);
-router.get("/author/:authorId", articleController.getByAuthor);
-router.get("/:id", articleController.get);
+// author/admin create & edit
+router.post(
+  "/",
+  requireAuth,
+  requireRole("author", "admin"),
+  articleController.createArticle
+);
 
-// Protected routes - auth middleware extracts user from token
-router.post("/", auth, publishGate, articleController.create);
-router.put("/:id", auth, articleController.update);
-router.delete("/:id", auth, articleController.remove);
+router.patch(
+  "/:id",
+  requireAuth,
+  requireRole("author", "admin"),
+  articleController.updateArticle
+);
+
+router.post(
+  "/:id/submit",
+  requireAuth,
+  requireRole("author", "admin"),
+  articleController.submitForReview
+);
+
+// admin moderation
+router.get(
+  "/pending",
+  requireAuth,
+  requireRole("admin"),
+  articleController.getPendingArticles
+);
+
+router.patch(
+  "/:id/moderate",
+  requireAuth,
+  requireRole("admin"),
+  articleController.moderateArticle
+);
+
+// author/admin dashboard
+router.get(
+  "/mine",
+  requireAuth,
+  requireRole("author", "admin"),
+  articleController.getMyArticles
+);
+
+// author/admin: fetch single article for editing (any status)
+router.get(
+  "/secure/:id",
+  requireAuth,
+  requireRole("author", "admin"),
+  articleController.getArticleSecureById
+);
+
+// public (these must be last)
+router.get("/", articleController.getPublishedArticles);
+router.get("/:id", articleController.getPublishedArticleById);
 
 export default router;

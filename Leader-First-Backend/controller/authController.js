@@ -1,19 +1,21 @@
+// controllers/authController.js
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import User from "../models/user.js";
 
-// In-memory OTP store for demo. Use Redis or DB with TTL in production
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRE || "7d";
+
+// In-memory OTP store; replace with Redis/DB in production
 const otpStore = new Map();
 
 const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
+  jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-// Configure nodemailer transport
+// Nodemailer transport
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -33,19 +35,19 @@ const sendOtpEmail = async (email, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-// Step 1: Request OTP - send OTP email and save OTP temporarily
-export const requestOtp = async (req, res) => {
+// Step 1: request OTP
+const requestOtp = async (req, res) => {
   try {
     const { email } = req.body;
-
     if (!email) return res.status(400).json({ message: "Email required" });
 
     const exists = await User.findOne({ email });
-    if (exists)
+    if (exists) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
     const otp = generateOTP();
-    otpStore.set(email, { otp, expires: Date.now() + 300000 }); // 5 mins expiry
+    otpStore.set(email, { otp, expires: Date.now() + 5 * 60 * 1000 });
 
     await sendOtpEmail(email, otp);
 
@@ -55,22 +57,25 @@ export const requestOtp = async (req, res) => {
   }
 };
 
-// Step 2: Verify OTP and register user
-export const verifyOtpAndRegister = async (req, res) => {
+// Step 2: verify OTP and register (roles: user/author/admin)
+const verifyOtpAndRegister = async (req, res) => {
   try {
     const { email, password, role, otp } = req.body;
 
-    if (!email || !password || !otp)
+    if (!email || !password || !otp) {
       return res
         .status(400)
         .json({ message: "Email, password and OTP required" });
+    }
 
     const record = otpStore.get(email);
-    if (!record)
+    if (!record) {
       return res.status(400).json({ message: "OTP expired or not requested" });
+    }
 
-    if (record.otp !== otp)
+    if (record.otp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
+    }
 
     if (Date.now() > record.expires) {
       otpStore.delete(email);
@@ -80,10 +85,14 @@ export const verifyOtpAndRegister = async (req, res) => {
     otpStore.delete(email);
 
     const exists = await User.findOne({ email });
-    if (exists)
+    if (exists) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
-    const safeRole = role === "admin" ? "user" : role || "user";
+    // allow only user/author/admin, but block self‑assigned admin
+    const allowedRoles = ["user", "author", "admin"];
+    let safeRole = allowedRoles.includes(role) ? role : "user";
+    if (safeRole === "admin") safeRole = "user";
 
     const user = await User.create({ email, password, role: safeRole });
     const token = signToken(user._id);
@@ -97,18 +106,23 @@ export const verifyOtpAndRegister = async (req, res) => {
   }
 };
 
-// Existing login
-export const login = async (req, res) => {
+// Login
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
+    if (!email || !password) {
       return res.status(400).json({ message: "email and password required" });
+    }
 
     const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(401).json({ message: "invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ message: "invalid credentials" });
+    }
 
     const ok = await user.comparePassword(password);
-    if (!ok) return res.status(401).json({ message: "invalid credentials" });
+    if (!ok) {
+      return res.status(401).json({ message: "invalid credentials" });
+    }
 
     const token = signToken(user._id);
     return res.status(200).json({
@@ -120,14 +134,16 @@ export const login = async (req, res) => {
   }
 };
 
-// Existing me
-export const me = async (req, res) => {
+// Me (used by header / dashboard)
+const me = async (req, res) => {
   const user = await User.findById(req.user.id);
-  if (!user)
+  if (!user) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
   user.ensurePeriodWindow?.();
   await user.save?.();
+
   res.json({
     success: true,
     data: {
@@ -142,4 +158,9 @@ export const me = async (req, res) => {
   });
 };
 
-export default { requestOtp, verifyOtpAndRegister, login, me };
+export default {
+  requestOtp,
+  verifyOtpAndRegister,
+  login,
+  me,
+};
