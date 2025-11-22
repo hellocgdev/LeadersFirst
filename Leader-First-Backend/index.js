@@ -8,6 +8,7 @@ import uploadRoute from "./routes/upload.js";
 import billingRoute from "./routes/billing.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import donationRoutes from "./routes/donation.js";
+import adminRoute from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use("/api/upload", uploadRoute);
 app.use("/billing", billingRoute);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/donations", donationRoutes);
+app.use("/api/admin", adminRoute);
 
 // 9. 404 handler
 app.use((req, res) => {

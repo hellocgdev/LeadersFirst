@@ -1,210 +1,262 @@
+// controllers/articleController.js
 import Article from "../models/article.js";
-import { cloudinary } from "../config/cloudinary.js";
-import { ensurePeriodWindow } from "../utils/billing.js";
-import User from "../models/user.js";
+import User from "../models/user.js"; // needed for author methods
 
-function ok(res, data, status = 200) {
-  return res.status(status).json({ success: true, data });
-}
-function fail(res, message, status = 400) {
-  return res.status(status).json({ success: false, message });
-}
-function parseDateOrNull(value) {
-  if (!value) return null;
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-export const create = async (req, res) => {
+// Create article (author or admin)
+const createArticle = async (req, res) => {
   try {
-    const { title, content, thumbnail, category, publishedAt, slug, images } = req.body;
-    const author = req.user?._id || req.user?.id;
-
-    if (!author) return fail(res, "User not authenticated", 401);
-    if (!title) return fail(res, "Title is required");
-    if (!content) return fail(res, "Content is required");
-    if (!category) return fail(res, "Category is required");
-
-    // THUMBNAIL IS NOW OPTIONAL - REMOVED THIS CHECK
-    // if (!thumbnail || !thumbnail.url)
-    //   return fail(res, "Thumbnail URL is required");
-
-    // Enforce publish gate (2 free publishes if inactive)
-    const user = await User.findById(author);
-    user.ensurePeriodWindow();
-    if (!user.canPublish()) {
-      return res.status(402).json({
-        success: false,
-        code: "PAYMENT_REQUIRED",
-        message:
-          "Publish limit reached. Please upgrade to continue publishing.",
-      });
-    }
-
-    const pubAt = parseDateOrNull(publishedAt) || new Date();
-    const articleData = {
+    const {
       title,
       content,
-      author,
       category,
-      publishedAt: pubAt,
-    };
+      thumbnail,
+      images,
+      status,
+      leaderFeatured,
+    } = req.body;
 
-    // ONLY ADD THUMBNAIL IF IT EXISTS
-    if (thumbnail && thumbnail.url) {
-      articleData.thumbnail = {
-        url: thumbnail.url,
-        alt: thumbnail.alt || title,
-        publicId: thumbnail.publicId || null,
-      };
+    if (!title || !content || !category) {
+      return res
+        .status(400)
+        .json({ message: "Title, content and category are required" });
     }
 
-    // ADD IMAGES ARRAY IF PROVIDED
-    if (images && Array.isArray(images) && images.length > 0) {
-      articleData.images = images;
+    // Author can only start in draft or pending
+    // Admin may create directly as published if you want
+    let initialStatus = "draft";
+    const allowedForAuthor = ["draft", "pending"];
+    const allowedForAdmin = ["draft", "pending", "published"];
+
+    if (req.user.role === "author") {
+      initialStatus = allowedForAuthor.includes(status) ? status : "draft";
+    } else if (req.user.role === "admin") {
+      initialStatus = allowedForAdmin.includes(status) ? status : "draft";
     }
 
-    if (slug) articleData.slug = slug;
-
-    const doc = await Article.create(articleData);
-    await doc.populate("author", "name email avatar");
-
-    // Increment count for inactive plans
-    await user.incrementPublishCountIfNeeded();
-
-    return ok(res, doc, 201);
-  } catch (err) {
-    console.error("Error creating article:", err);
-    return fail(res, "Failed to create article", 500);
-  }
-};
-
-// Rest of your controller code...
-export const list = async (_req, res) => {
-  try {
-    const docs = await Article.find()
-      .populate("author", "name email avatar")
-      .sort({ publishedAt: -1 });
-    return res.status(200).json({ count: docs.length, data: docs });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-export const get = async (req, res) => {
-  try {
-    const doc = await Article.findById(req.params.id).populate(
-      "author",
-      "name email avatar"
-    );
-    if (!doc) return res.status(404).json({ message: "Article not found" });
-    return res.status(200).json(doc);
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-export const getByCategory = async (req, res) => {
-  try {
-    const { category } = req.params;
-    const docs = await Article.find({ category })
-      .populate("author", "name email avatar")
-      .sort({ publishedAt: -1 });
-    return res.status(200).json({ count: docs.length, data: docs });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-export const getByAuthor = async (req, res) => {
-  try {
-    const { authorId } = req.params;
-    const docs = await Article.find({ author: authorId })
-      .populate("author", "name email avatar")
-      .sort({ publishedAt: -1 });
-    return res.status(200).json({ count: docs.length, data: docs });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-export const update = async (req, res) => {
-  try {
-    const { title, content, thumbnail, category, publishedAt } = req.body;
-
-    if ("title" in req.body && !title) {
-      return res.status(400).json({ message: "Title cannot be empty" });
-    }
-    if ("content" in req.body && !content) {
-      return res.status(400).json({ message: "Content cannot be empty" });
-    }
-    if ("category" in req.body && !category) {
-      return res.status(400).json({ message: "Category cannot be empty" });
-    }
-
-    // THUMBNAIL VALIDATION - NOW OPTIONAL, ONLY VALIDATE IF PROVIDED
-    if ("thumbnail" in req.body && thumbnail && !thumbnail.url) {
-      return res.status(400).json({
-        message: "Thumbnail URL is required when thumbnail is provided",
-      });
-    }
-
-    const updateFields = {};
-    if ("title" in req.body) updateFields.title = title;
-    if ("content" in req.body) updateFields.content = content;
-    if ("category" in req.body) updateFields.category = category;
-    if ("publishedAt" in req.body)
-      updateFields.publishedAt = new Date(publishedAt);
-
-    // ONLY UPDATE THUMBNAIL IF IT EXISTS AND HAS A URL
-    if ("thumbnail" in req.body && thumbnail && thumbnail.url) {
-      updateFields.thumbnail = {
-        url: thumbnail.url,
-        alt: thumbnail.alt || updateFields.title || "",
-        publicId: thumbnail.publicId || null,
-      };
-    }
-
-    const doc = await Article.findByIdAndUpdate(req.params.id, updateFields, {
-      new: true,
-      runValidators: true,
-    }).populate("author", "name email avatar");
-
-    if (!doc) return res.status(404).json({ message: "Article not found" });
-    return res.status(200).json(doc);
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-export const remove = async (req, res) => {
-  try {
-    const doc = await Article.findByIdAndDelete(req.params.id);
-    if (!doc) return res.status(404).json({ message: "Article not found" });
-
-    // ONLY DELETE FROM CLOUDINARY IF THUMBNAIL EXISTS
-    if (doc.thumbnail?.publicId) {
-      await cloudinary.uploader.destroy(doc.thumbnail.publicId);
-    }
-
-    return res.status(200).json({
-      message: "Article deleted successfully",
-      deletedArticle: {
-        id: doc._id,
-        title: doc.title,
-      },
+    const article = await Article.create({
+      title,
+      content,
+      category,
+      thumbnail,
+      images,
+      author: req.user._id,
+      leaderFeatured: leaderFeatured || null, // NEW: optional featured leader
+      status: initialStatus,
+      publishedAt: initialStatus === "published" ? new Date() : null,
     });
+
+    res.status(201).json(article);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Failed to create article" });
+  }
+};
+
+// Update article (author/admin)
+const updateArticle = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: "Not found" });
+
+    const isAuthor = article.author.toString() === req.user._id.toString();
+
+    if (req.user.role === "author" && !isAuthor) {
+      return res.status(403).json({ message: "Not your article" });
+    }
+    if (req.user.role === "author" && article.status === "published") {
+      return res
+        .status(403)
+        .json({ message: "Published article cannot be edited" });
+    }
+
+    const fields = [
+      "title",
+      "content",
+      "category",
+      "thumbnail",
+      "images",
+      "status",
+      "leaderFeatured", // NEW: allow updating featured leader
+    ];
+
+    for (const key of fields) {
+      if (req.body[key] !== undefined) {
+        if (key === "status") {
+          // only allow draft/pending via update; publish must go through moderation
+          if (["draft", "pending"].includes(req.body.status)) {
+            article.status = req.body.status;
+            article.rejectionReason = undefined;
+          }
+        } else {
+          article[key] = req.body[key];
+        }
+      }
+    }
+
+    await article.save();
+    res.json(article);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update article" });
+  }
+};
+
+// Author submits for review
+const submitForReview = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: "Not found" });
+
+    const isAuthor = article.author.toString() === req.user._id.toString();
+
+    if (req.user.role === "author" && !isAuthor) {
+      return res.status(403).json({ message: "Not your article" });
+    }
+    if (article.status === "published") {
+      return res.status(400).json({ message: "Already published" });
+    }
+
+    article.status = "pending";
+    article.rejectionReason = undefined;
+    await article.save();
+
+    res.json(article);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to submit article" });
+  }
+};
+
+// Admin: list all pending
+const getPendingArticles = async (req, res) => {
+  try {
+    const articles = await Article.find({ status: "pending" })
+      .sort({ createdAt: -1 })
+      .populate("author", "email role name")
+      .populate("leaderFeatured", "name"); // optional populate
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load pending articles" });
+  }
+};
+
+// Admin: moderate (publish or reject)
+const moderateArticle = async (req, res) => {
+  try {
+    const { action, reason } = req.body;
+    const article = await Article.findById(req.params.id).populate(
+      "author",
+      "+password"
+    );
+    if (!article) return res.status(404).json({ message: "Not found" });
+
+    // load full User doc so methods are available
+    const author = await User.findById(article.author._id).select("+password");
+    if (!author) {
+      return res.status(404).json({ message: "Author not found" });
+    }
+
+    if (action === "publish") {
+      if (!author.canPublish()) {
+        return res.status(403).json({
+          message:
+            "Author has reached free publish limit or does not have an active plan",
+        });
+      }
+
+      article.status = "published";
+      article.publishedAt = new Date();
+      article.rejectionReason = undefined;
+      await article.save();
+
+      await author.incrementPublishCountIfNeeded();
+
+      res.json(article);
+    } else if (action === "reject") {
+      article.status = "draft";
+      article.rejectionReason = reason || "Rejected by admin";
+      await article.save();
+      res.json(article);
+    } else {
+      res.status(400).json({ message: "Invalid moderation action" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Failed to moderate article" });
+  }
+};
+
+// Author/admin dashboard: own or all articles
+const getMyArticles = async (req, res) => {
+  try {
+    const filter = req.user.role === "author" ? { author: req.user._id } : {};
+    const articles = await Article.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("author", "email name")
+      .populate("leaderFeatured", "name"); // optional populate
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load articles" });
+  }
+};
+
+// Public: list published (homepage/blog)
+const getPublishedArticles = async (req, res) => {
+  try {
+    const filter = { status: "published" };
+    if (req.query.category) filter.category = req.query.category;
+
+    const articles = await Article.find(filter)
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .populate("author", "email name")
+      .populate("leaderFeatured", "name"); // optional populate
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load articles" });
+  }
+};
+
+// Public: single published article
+const getPublishedArticleById = async (req, res) => {
+  try {
+    const article = await Article.findOne({
+      _id: req.params.id,
+      status: "published",
+    })
+      .populate("author", "email name")
+      .populate("leaderFeatured", "name"); // optional populate
+    if (!article) return res.status(404).json({ message: "Not found" });
+    res.json(article);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load article" });
+  }
+};
+
+// Author/Admin: get single article (any status) for editing/preview
+const getArticleSecureById = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id)
+      .populate("author", "email name")
+      .populate("leaderFeatured", "name"); // optional populate
+    if (!article) return res.status(404).json({ message: "Not found" });
+
+    const isAuthor = article.author._id.toString() === req.user._id.toString();
+
+    // authors can only access their own; admins can access any
+    if (req.user.role === "author" && !isAuthor) {
+      return res.status(403).json({ message: "Not your article" });
+    }
+
+    res.json(article);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load article" });
   }
 };
 
 export default {
-  list,
-  get,
-  getByCategory,
-  getByAuthor,
-  create,
-  update,
-  remove,
+  createArticle,
+  updateArticle,
+  submitForReview,
+  getPendingArticles,
+  moderateArticle,
+  getMyArticles,
+  getPublishedArticles,
+  getPublishedArticleById,
+  getArticleSecureById,
 };

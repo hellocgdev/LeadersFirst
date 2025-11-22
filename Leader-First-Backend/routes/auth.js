@@ -1,19 +1,18 @@
-import { Router } from "express";
-import auth from "../middleware/auth.js";
-import {
-  requestOtp,
-  verifyOtpAndRegister,
-  login,
-  me,
-} from "../controller/authController.js";
+// routes/authRoutes.js
+import express from "express";
+import authController from "../controller/authController.js";
+import { requireAuth } from "../middleware/auth.js";
 
-const router = Router();
+const router = express.Router();
 
-router.post("/register/request-otp", requestOtp);
+// OTP-based registration
+router.post("/request-otp", authController.requestOtp);
+router.post("/verify-otp-register", authController.verifyOtpAndRegister);
 
-router.post("/register/verify-otp", verifyOtpAndRegister);
+// Login with email/password
+router.post("/login", authController.login);
 
-router.post("/login", login);
-router.get("/me", auth, me);
+// Current user (needs JWT)
+router.get("/me", requireAuth, authController.me);
 
 export default router;
