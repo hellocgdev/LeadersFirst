@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon } from "./icons/Icons";
 import { api } from "../lib/api";
+import DonationPage from "./CharityPage";
 
 const categoryItems = [
   { label: "Leadership", description: "Leading teams, strategy & vision." },
@@ -132,28 +133,28 @@ const Header = ({ currentUser, onLogout }) => {
     <>
       <button
         onClick={() => handleCategoryClick("Leadership")}
-        className="text-sm font-medium text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Leadership
       </button>
 
       <Link
         to="/community"
-        className="text-sm font-medium text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Community
       </Link>
 
-      <Link
+      {/* <Link
         to="/perks"
-        className="text-sm font-medium text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
       >
         Perks
-      </Link>
+      </Link> */}
 
       <Link
         to="/blog"
-        className="text-sm font-medium text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Blog
       </Link>
@@ -166,11 +167,11 @@ const Header = ({ currentUser, onLogout }) => {
       >
         <button
           type="button"
-          className={`group flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-full transition-all duration-200
+          className={`group flex items-center gap-1 text-md font-medium font-serif px-3 py-2 rounded-full transition-all duration-200
             ${
               isDropdownOpen
                 ? "bg-gray-100 text-black"
-                : "text-gray-900 hover:text-black hover:bg-gray-50"
+                : "text-[#0D1126] hover:text-black hover:bg-gray-50"
             }`}
         >
           Categories
@@ -192,6 +193,12 @@ const Header = ({ currentUser, onLogout }) => {
           </svg>
         </button>
       </div>
+      <Link
+        to="/donations"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
+      >
+        Contribute to Charity
+      </Link>
 
       {/* MEGA MENU PANEL 
          - Added 'top-[calc(100%+0.5rem)]' for perfect spacing 
@@ -212,19 +219,19 @@ const Header = ({ currentUser, onLogout }) => {
           {/* Sidebar Column (Gray) */}
           <div className="w-1/3 bg-slate-50 p-8 flex flex-col justify-between border-r border-gray-100">
             <div>
-              <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-3">
+              <p className="text-xs font-bold font-serif tracking-widest text-gray-400 uppercase mb-3">
                 Explore
               </p>
-              <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-serif font-semibold text-gray-900 mb-2">
                 Curated Topics
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm font-serif text-gray-500 leading-relaxed">
                 Deep dive into the subjects that matter most to modern leaders.
               </p>
             </div>
             <Link
               to="/blog"
-              className="text-sm font-semibold text-gray-900 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-900 transition-all"
+              className="text-sm font-semibold font-serif text-gray-900 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-900 transition-all"
             >
               View all articles &rarr;
             </Link>
@@ -239,10 +246,10 @@ const Header = ({ currentUser, onLogout }) => {
                   onClick={() => handleCategoryClick(cat.label)}
                   className="group flex flex-col items-start p-3 rounded-xl hover:bg-gray-50 transition-colors text-left"
                 >
-                  <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <span className="text-md font-medium font-serif text-gray-900 group-hover:text-blue-600 transition-colors">
                     {cat.label}
                   </span>
-                  <span className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                  <span className="text-md font-serif text-gray-500 mt-0.5 line-clamp-1">
                     {cat.description}
                   </span>
                 </button>
@@ -271,24 +278,24 @@ const Header = ({ currentUser, onLogout }) => {
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-sm font-medium">
+      <div className="flex items-center gap-4 text-md font-medium font-serif">
         {isUserAdmin && (
           <>
             <Link
               to="/upload-article"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Upload
             </Link>
             <Link
               to="/rephrase"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Rephraser
             </Link>
             <Link
               to="/pricing-page"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Pricing
             </Link>
@@ -346,22 +353,26 @@ const Header = ({ currentUser, onLogout }) => {
   );
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${
-        isScrolled ? "shadow-md" : "border-b border-gray-200"
-      }`}
-    >
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
-          <Link
-            to="/"
-            className="text-xl font-bold text-brand-dark font-serif cursor-pointer"
-          >
-            The Leaders First
-          </Link>
-
+    <>
+      {/* Main Header Navbar */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 border-b border-transparent
+          ${
+            isScrolled
+              ? "bg-white/90 backdrop-blur-md shadow-sm border-gray-200 py-3"
+              : "bg-white py-5 border-gray-100"
+          }`}
+      >
+        <div className="container mx-auto px-6 md:px-8">
+          <div className="flex justify-between items-center relative">
+            {/* Logo */}
+            <Link to="/" className="shrink-0 group">
+              <span className="text-xl md:text-2xl font-serif font-semibold text-gray-900 tracking-tight group-hover:opacity-80 transition-opacity">
+                The Leaders First
+              </span>
+            </Link>
             {/* Desktop Nav - Relative for Dropdown Positioning */}
-            <nav className="hidden lg:flex items-center gap-8 relative">
+            <nav className="hidden pl-30 lg:flex items-center gap-8 relative">
               {navLinks}
             </nav>
 
@@ -384,13 +395,13 @@ const Header = ({ currentUser, onLogout }) => {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[90] bg-white pt-24 px-6 lg:hidden overflow-y-auto">
-          <nav className="flex flex-col space-y-6 text-center">
+        <div className="fixed inset-0 z-90 bg-white pt-24 px-6 lg:hidden overflow-y-auto">
+          <nav className="flex font-serif flex-col space-y-6 text-center">
             {categoryItems.map((cat) => (
               <button
                 key={cat.label}
                 onClick={() => handleCategoryClick(cat.label)}
-                className="text-lg font-medium text-gray-800 hover:text-blue-600 transition-colors"
+                className="text-lg font-medium font-serif text-gray-800 hover:text-blue-600 transition-colors"
               >
                 {cat.label}
               </button>
@@ -399,23 +410,30 @@ const Header = ({ currentUser, onLogout }) => {
             <Link
               to="/community"
               onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-medium text-gray-600"
+              className="text-lg font-medium font-serif text-gray-600"
             >
               Community
             </Link>
             <Link
               to="/perks"
               onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-medium text-gray-600"
+              className="text-lg font-medium font-serif text-gray-600"
             >
               Perks
             </Link>
             <Link
               to="/blog"
               onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-medium text-gray-600"
+              className="text-lg font-medium font-serif text-gray-600"
             >
               Blog
+            </Link>
+            <Link
+              to="/donations"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg font-medium font-serif text-gray-600"
+            >
+              Donate for a Cause
             </Link>
             <div className="pt-4">{authLinksMobile}</div>
           </nav>
@@ -425,7 +443,7 @@ const Header = ({ currentUser, onLogout }) => {
       {/* Bottom Announcement Bar - Styled Premium */}
       {/* Added padding-top to body implicitly via the fixed header, but here acts as a sticky bottom or standard bottom bar */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[100] lg:top-[calc(100%-theme(spacing.10))] lg:bottom-auto transition-transform duration-300 ${
+        className={`fixed bottom-0 left-0 right-0 z-100 lg:top-[calc(100%-(--spacing(10)))] lg:bottom-auto transition-transform duration-300 ${
           isMenuOpen ? "hidden" : ""
         }`}
       >
@@ -437,10 +455,10 @@ const Header = ({ currentUser, onLogout }) => {
           Your original code put it inside the header component but it looked like it was meant to be fixed or part of the flow. 
           Here is a cleaner version placed just below the header logically if you render it there.
       */}
-      <div className="hidden lg:block fixed bottom-0 w-full bg-gray-900 text-white text-center py-3 text-xs font-bold tracking-widest uppercase z-40">
+      <div className="hidden lg:block fixed bottom-0 w-full bg-gray-900 text-white text-center py-3 text-xs font-bold font-serif tracking-widest uppercase z-40">
         <span className="opacity-80">Ready to share your insights?</span>
         <Link
-          to="/upload-article"
+          to="/pricing-page"
           className="ml-2 text-white underline decoration-white/50 underline-offset-4 hover:decoration-white hover:text-white transition-all"
         >
           Post your first free article

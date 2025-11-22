@@ -60,11 +60,11 @@ const OfferPopup: React.FC<OfferPopupProps> = ({ onClose, onCtaClick }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4 animate-fade-in"
+      className="fixed inset-0 pt-20 bg-black bg-opacity-70 z-50 flex justify-center items-center p-2 animate-fade-in"
       aria-modal="true"
       role="dialog"
     >
-      <div className="bg-gradient-to-br from-[#FE6B8B] to-[#FF8E53] text-white rounded-2xl shadow-xl max-w-lg w-full relative transform transition-all opacity-0 animate-scale-in font-sans">
+      <div className="bg-linear-to-br from-[#FE6B8B] to-[#FF8E53] text-white rounded-2xl shadow-xl max-w-lg w-full relative transform transition-all opacity-0 animate-scale-in font-sans">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-white/20 hover:bg-white/30 rounded-full p-1.5"
@@ -86,10 +86,6 @@ const OfferPopup: React.FC<OfferPopupProps> = ({ onClose, onCtaClick }) => {
           <h2 className="text-2xl font-bold mt-4 mb-2">
             Biggest Sale of the Year!
           </h2>
-          <p className="text-white/90 max-w-md mx-auto mb-6 text-sm">
-            Don't miss out on incredible savings. Limited time offer ends soon!
-          </p>
-
           <div className="mb-8">
             <p className="text-sm text-white/90 mb-2">
               Use this coupon code at checkout:
@@ -119,7 +115,7 @@ const OfferPopup: React.FC<OfferPopupProps> = ({ onClose, onCtaClick }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
-              className="w-full flex-grow px-5 py-3 border border-transparent rounded-full shadow-inner placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 text-black text-center sm:text-left"
+              className="w-full grow px-5 py-3 border border-transparent rounded-full shadow-inner placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 text-black text-center sm:text-left"
               aria-label="Enter your email"
             />
             <button

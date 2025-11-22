@@ -107,13 +107,13 @@ const DonationPage = () => {
         {/* Hero Section */}
         <div className="bg-white">
           <div
-            className="max-w-4xl mx-auto px-4 pt-2 pb-2 md:pt-10 md:pb-20
+            className="max-w-4xl mx-auto px-1 md:pt-10 md:pb-3
  text-center"
           >
             <h1 className="text-4xl md:text-6xl font-semibold text-gray-900 mb-6 font-serif">
               Support Our Mission
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl font-serif md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
               Your contribution helps us continue creating thought-provoking
               content on leadership, performance, and personal growth.
             </p>
@@ -121,8 +121,8 @@ const DonationPage = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
-          <div className="grid md:grid-cols-2 gap-12 md:gap-16 mb-16 items-start">
+        <div className="max-w-6xl mx-auto px-4 py-6 md:py-10">
+          <div className="grid md:grid-cols-3 gap-12 md:gap-16 mb-16 items-start">
             {/* Impact Section */}
             <div className="space-y-8">
               <div>
@@ -131,7 +131,7 @@ const DonationPage = () => {
                 </h2>
                 <div className="space-y-6">
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <div className="shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <svg
                         className="w-6 h-6 text-gray-700"
                         fill="none"
@@ -158,7 +158,7 @@ const DonationPage = () => {
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <div className="shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <svg
                         className="w-6 h-6 text-gray-700"
                         fill="none"
@@ -185,7 +185,7 @@ const DonationPage = () => {
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <div className="shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <svg
                         className="w-6 h-6 text-gray-700"
                         fill="none"
@@ -221,7 +221,7 @@ const DonationPage = () => {
                 <div className="space-y-3 text-sm text-gray-600">
                   <div className="flex items-start gap-2">
                     <svg
-                      className="w-5 h-5 text-gray-700 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-gray-700 shrink-0 mt-0.5"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -235,7 +235,7 @@ const DonationPage = () => {
                   </div>
                   <div className="flex items-start gap-2">
                     <svg
-                      className="w-5 h-5 text-gray-700 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-gray-700 shrink-0 mt-0.5"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -368,6 +368,68 @@ const DonationPage = () => {
                     Secure payment • Your data is protected
                   </p>
                 </form>
+              </div>
+            </div>
+
+            {/* Banking Details Section */}
+            <div>
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6 font-serif">
+                  Pay via Net Banking
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Name
+                    </label>
+                    <p className="text-gray-900 font-semibold">CG Group</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Number
+                    </label>
+                    <p className="text-gray-900 font-semibold">0549231538</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bank
+                    </label>
+                    <p className="text-gray-900 font-semibold">Kotak Mahindra Bank</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      IFSC Code
+                    </label>
+                    <p className="text-gray-900 font-semibold">KKBK0000656</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Branch
+                    </label>
+                    <p className="text-gray-900 font-semibold">
+                      Hiranandani Meadows, Pokharan Road 2
+                    </p>
+                  </div>
+                </div>
+
+                {/* QR Code */}
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4 text-center">
+                    Scan to Pay
+                  </h3>
+                  <div className="flex justify-center">
+                    <img
+                      src="/CG_GROUP_PAYMENT_QR.jpg"
+                      alt="CG Group Payment QR Code"
+                      className="w-68 h-68 rounded-lg shadow-md"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
