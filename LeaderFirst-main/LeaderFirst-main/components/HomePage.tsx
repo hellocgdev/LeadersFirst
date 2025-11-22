@@ -4,6 +4,8 @@ import CtaSection from "./CtaSection";
 import OfferPopup from "./OfferPopUp";
 import TrendingStrip from "./TrendingStrip";
 import EditorsPicks from "./EditorsPicks";
+import TodaysMix from "./TodaysMix";
+import Featured from "./Featured";
 import NewsLetterBand from "./NewsLetterBand";
 
 const HomePage = ({ posts, currentUser }) => {
@@ -46,6 +48,8 @@ const HomePage = ({ posts, currentUser }) => {
     <main>
       <Insights />
       <EditorsPicks articles={editorsPickArticles} />
+      <TodaysMix articles={trendingArticles} />
+      <Featured articles={trendingArticles} />
       <TrendingStrip articles={trendingArticles} />
       {/* <CtaSection currentUser={currentUser} /> */}
       <NewsLetterBand onSubmit={undefined} />

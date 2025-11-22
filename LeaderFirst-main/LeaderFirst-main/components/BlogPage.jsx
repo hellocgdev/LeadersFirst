@@ -43,7 +43,7 @@ export const InsightCard = ({
           onError={onImageError}
         />
       ) : (
-        <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-linear-to-br from-gray-300 to-gray-400">
           <span className="text-gray-600 font-bold text-4xl">
             {title.substring(0, 1)}
           </span>

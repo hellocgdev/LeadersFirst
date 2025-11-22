@@ -199,10 +199,10 @@ const Insights = () => {
     <section className="py-8" style={{ backgroundColor: "#FBF9F6" }}>
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Main Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column - Featured Leaders */}
-          <div className="lg:col-span-1 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
-            <h3 className="text-2xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - Featured Leaders (thinner) */}
+          <div className="lg:col-span-2 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+            <h3 className="text-xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
               Featured leaders
             </h3>
             <div className="space-y-6">
@@ -213,18 +213,18 @@ const Insights = () => {
                     <img
                       src={`/${leader.image}`}
                       alt={leader.name}
-                      className="w-20 h-20 rounded-full object-cover bg-gray-200"
+                      className="w-16 h-16 rounded-full object-cover bg-gray-200"
                     />
                     <div className="w-full">
-                      <h4 className="font-semibold text-sm" style={{ color: "#00002F" }}>
+                      <h4 className="font-semibold text-xs" style={{ color: "#00002F" }}>
                         {leader.name}
                       </h4>
-                      <p className="text-xs text-gray-600">{leader.position}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2">{leader.position}</p>
                     </div>
                   </div>
                   <button
                     onClick={(e) => handleFollowLeaderClick(e, index)}
-                    className="mt-3 w-full text-sm font-medium border py-2 rounded transition"
+                    className="mt-3 w-full text-xs font-medium border py-1.5 rounded transition"
                     style={{
                       backgroundColor: followedLeaders.has(index) ? "#0F766E" : "#FEFFED",
                       color: followedLeaders.has(index) ? "#FEFFED" : "#00002F",
@@ -238,8 +238,8 @@ const Insights = () => {
             </div>
           </div>
 
-          {/* Right Column - Company News / Articles */}
-          <div className="lg:col-span-3 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+          {/* Center Column - Company News / Articles */}
+          <div className="lg:col-span-7 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-semibold font-serif" style={{ color: "#00002F" }}>
                 Company news
@@ -275,22 +275,13 @@ const Insights = () => {
                       >
                         {article.title}
                       </h4>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {getExcerpt(article.content, 120)}
+                      <p className="text-sm text-gray-900 mb-3 line-clamp-4">
+                        {getExcerpt(article.content, 520)}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-300 shrink-0" />
-                        <p className="text-xs text-gray-500">
-                          By{" "}
-                          {article.author?.name ||
-                            article.author?.email ||
-                            "Anonymous"}
-                        </p>
-                      </div>
                     </div>
 
                     {/* Right - Article Image */}
-                    <div className="relative shrink-0 w-40 h-32 rounded-md overflow-hidden">
+                    <div className="relative shrink-0 w-50 h-38 rounded-md overflow-hidden">
                       {article.thumbnail?.url && !imageErrors[article._id] ? (
                         <div
                           className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
@@ -311,7 +302,7 @@ const Insights = () => {
                   </Link>
 
                   {/* Follow Company Button */}
-                  <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                  <div className="px-4 pb-4 border-t border-gray-100">
                     <button
                       onClick={(e) => handleFollowClick(e, article._id)}
                       className="text-sm font-medium px-4 py-2 rounded transition"
@@ -325,6 +316,45 @@ const Insights = () => {
                     </button>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column - Quick Reads */}
+          <div className="lg:col-span-3 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+            <h3 className="text-2xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
+              Quick reads
+            </h3>
+
+            <div className="space-y-6">
+              {bottomGridArticles.map((article, index) => (
+                <Link
+                  key={article._id}
+                  to={`/blog/${article._id}`}
+                  className="block border-b border-gray-200 pb-6 last:border-b-0 group cursor-pointer"
+                >
+                  {/* Read Time Badge */}
+                  {article.readTime && (
+                    <p className="text-xs font-semibold uppercase mb-2" style={{ color: "#0F766E" }}>
+                      {article.readTime} MIN READ
+                    </p>
+                  )}
+
+                  {/* Title */}
+                  <h4
+                    className="font-semibold font-serif text-base mb-3 transition-colors duration-200 line-clamp-3 group-hover:opacity-80"
+                    style={{ color: "#00002F" }}
+                  >
+                    {article.title}
+                  </h4>
+
+                  {/* Source/Category */}
+                  {article.category && (
+                    <p className="text-xs text-gray-600 uppercase tracking-wide">
+                      FROM {article.category.toUpperCase()}
+                    </p>
+                  )}
+                </Link>
               ))}
             </div>
           </div>
