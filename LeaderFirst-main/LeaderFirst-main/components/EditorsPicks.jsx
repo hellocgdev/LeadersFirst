@@ -86,7 +86,7 @@ const EditorsPicks = ({ articles = [] }) => {
                   <span className="relative inline-block transition-colors group-hover:text-blue-700">
                     {article.title}
                     <span
-                      className="absolute left-0 -bottom-0.5 h-[2px] w-0 bg-blue-700
+                      className="absolute left-0 -bottom-0.5 h-0.5 w-0 bg-blue-700
                    transition-all duration-200 group-hover:w-full"
                     />
                   </span>

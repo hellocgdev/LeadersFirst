@@ -133,14 +133,14 @@ const Header = ({ currentUser, onLogout }) => {
     <>
       <button
         onClick={() => handleCategoryClick("Leadership")}
-        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Leadership
       </button>
 
       <Link
         to="/community"
-        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Community
       </Link>
@@ -154,7 +154,7 @@ const Header = ({ currentUser, onLogout }) => {
 
       <Link
         to="/blog"
-        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Blog
       </Link>
@@ -171,7 +171,7 @@ const Header = ({ currentUser, onLogout }) => {
             ${
               isDropdownOpen
                 ? "bg-gray-100 text-black"
-                : "text-gray-900 hover:text-black hover:bg-gray-50"
+                : "text-[#0D1126] hover:text-black hover:bg-gray-50"
             }`}
         >
           Categories
@@ -195,7 +195,7 @@ const Header = ({ currentUser, onLogout }) => {
       </div>
       <Link
         to="/donations"
-        className="text-md font-medium font-serif text-gray-900 hover:text-black transition-colors"
+        className="text-md font-medium font-serif text-[#0D1126] hover:text-black transition-colors"
       >
         Contribute to Charity
       </Link>
@@ -283,19 +283,19 @@ const Header = ({ currentUser, onLogout }) => {
           <>
             <Link
               to="/upload-article"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Upload
             </Link>
             <Link
               to="/rephrase"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Rephraser
             </Link>
             <Link
               to="/pricing-page"
-              className="text-gray-900 hover:text-black transition-colors"
+              className="text-[#0D1126] hover:text-black transition-colors"
             >
               Pricing
             </Link>
@@ -458,7 +458,7 @@ const Header = ({ currentUser, onLogout }) => {
       <div className="hidden lg:block fixed bottom-0 w-full bg-gray-900 text-white text-center py-3 text-xs font-bold font-serif tracking-widest uppercase z-40">
         <span className="opacity-80">Ready to share your insights?</span>
         <Link
-          to="/upload-article"
+          to="/pricing-page"
           className="ml-2 text-white underline decoration-white/50 underline-offset-4 hover:decoration-white hover:text-white transition-all"
         >
           Post your first free article
