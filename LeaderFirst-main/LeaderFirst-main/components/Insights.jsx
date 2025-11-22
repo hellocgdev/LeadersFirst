@@ -44,6 +44,16 @@ const Insights = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [imageErrors, setImageErrors] = useState({});
+  const [followedArticles, setFollowedArticles] = useState(new Set());
+  const [followedLeaders, setFollowedLeaders] = useState(new Set());
+
+  // Dummy leaders data
+  const dummyLeaders = [
+    { name: "Warren Buffet", position: "CTO - BlackRock", image: "wb1.jpeg" },
+    { name: "Satya Nadela", position: "CEO - Microsoft", image: "SN1.jpeg" },
+    { name: "Kane Williamson", position: "NZ Cricketer", image: "KW1.jpeg" },
+    { name: "Narayana Murthy", position: "CPO - Infosys", image: "NM.jpeg" },
+  ];
 
   // Fetch articles from API
   useEffect(() => {
@@ -80,6 +90,36 @@ const Insights = () => {
     setImageErrors((prev) => ({ ...prev, [articleId]: true }));
   };
 
+  // Handle follow button click
+  const handleFollowClick = (e, articleId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFollowedArticles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(articleId)) {
+        newSet.delete(articleId);
+      } else {
+        newSet.add(articleId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle follow leader button click
+  const handleFollowLeaderClick = (e, leaderIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFollowedLeaders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(leaderIndex)) {
+        newSet.delete(leaderIndex);
+      } else {
+        newSet.add(leaderIndex);
+      }
+      return newSet;
+    });
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -112,9 +152,8 @@ const Insights = () => {
           <div className="text-xl text-gray-600">
             {shuffledArticles.length === 0
               ? "No articles published yet."
-              : `Only ${shuffledArticles.length} article${
-                  shuffledArticles.length > 1 ? "s" : ""
-                } available. Need at least 7 for the full layout.`}
+              : `Only ${shuffledArticles.length} article${shuffledArticles.length > 1 ? "s" : ""
+              } available. Need at least 7 for the full layout.`}
           </div>
         </div>
       </section>
@@ -157,193 +196,137 @@ const Insights = () => {
   ];
 
   return (
-    <section className="py-8 bg-[#FBF9F6]">
+    <section className="py-8" style={{ backgroundColor: "#FBF9F6" }}>
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-1 space-y-8">
-            <Link
-              to={`/blog/${leftTopArticle._id}`}
-              className="cursor-pointer group block focus:outline-none"
-            >
-              <div
-                className="relative w-full overflow-hidden rounded-lg shadow-md mb-4"
-                style={{ paddingBottom: "75%" }}
-              >
-                {leftTopArticle.thumbnail?.url &&
-                !imageErrors[leftTopArticle._id] ? (
-                  <div
-                    className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                    style={{
-                      backgroundImage: `url(${leftTopArticle.thumbnail.url})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                ) : (
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                    <span className="text-gray-600 text-sm font-medium px-4 text-center">
-                      {leftTopArticle.title}
-                    </span>
-                  </div>
-                )}
-                <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white p-2 text-xs font-bold uppercase z-10">
-                  The Leaders First
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold font-serif text-gray-900 transition-colors duration-200 group-hover:text-[#0F766E]">
-                {leftTopArticle.title}
-              </h3>
-            </Link>
-
-            <div className="border-t border-gray-200 pt-8">
-              <Link
-                to={`/blog/${leftBottomArticle._id}`}
-                className="flex gap-4 items-start cursor-pointer group focus:outline-none"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-blue-700 uppercase">
-                    {leftBottomArticle.category}
-                  </p>
-                  <h4 className="font-semibold font-serif text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
-                    {leftBottomArticle.title}
-                  </h4>
-                </div>
-                <div className="relative flex-shrink-0 w-24 h-24 rounded-md overflow-hidden">
-                  {leftBottomArticle.thumbnail?.url &&
-                  !imageErrors[leftBottomArticle._id] ? (
-                    <div
-                      className="absolute inset-0 w-full h-full bg-cover bg-center"
-                      style={{
-                        backgroundImage: `url(${leftBottomArticle.thumbnail.url})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
+          {/* Left Column - Featured Leaders */}
+          <div className="lg:col-span-1 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+            <h3 className="text-2xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
+              Featured leaders
+            </h3>
+            <div className="space-y-6">
+              {/* Dummy Featured Leaders */}
+              {dummyLeaders.map((leader, index) => (
+                <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <img
+                      src={`/${leader.image}`}
+                      alt={leader.name}
+                      className="w-20 h-20 rounded-full object-cover bg-gray-200"
                     />
-                  ) : (
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                      <span className="text-gray-600 text-xs font-medium px-2 text-center">
-                        No Image
-                      </span>
+                    <div className="w-full">
+                      <h4 className="font-semibold text-sm" style={{ color: "#00002F" }}>
+                        {leader.name}
+                      </h4>
+                      <p className="text-xs text-gray-600">{leader.position}</p>
                     </div>
-                  )}
+                  </div>
+                  <button
+                    onClick={(e) => handleFollowLeaderClick(e, index)}
+                    className="mt-3 w-full text-sm font-medium border py-2 rounded transition"
+                    style={{
+                      backgroundColor: followedLeaders.has(index) ? "#0F766E" : "#FEFFED",
+                      color: followedLeaders.has(index) ? "#FEFFED" : "#00002F",
+                      border: `1px solid ${followedLeaders.has(index) ? "#0F766E" : "#E5E7EB"}`,
+                    }}
+                  >
+                    {followedLeaders.has(index) ? "Following" : "Follow"}
+                  </button>
                 </div>
-              </Link>
+              ))}
             </div>
           </div>
 
-          {/* Center Column - Main Article */}
-          <Link
-            to={`/blog/${mainArticle._id}`}
-            className="lg:col-span-2 cursor-pointer group block focus:outline-none"
-          >
-            <div
-              className="relative w-full overflow-hidden rounded-lg shadow-lg mb-4"
-              style={{ paddingBottom: "56.25%" }}
-            >
-              {mainArticle.thumbnail?.url && !imageErrors[mainArticle._id] ? (
-                <div
-                  className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                  style={{
-                    backgroundImage: `url(${mainArticle.thumbnail.url})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-              ) : (
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                  <span className="text-gray-600 text-sm font-medium px-4 text-center">
-                    {mainArticle.title}
-                  </span>
-                </div>
-              )}
-            </div>
-            <p className="text-sm font-bold uppercase tracking-wider text-blue-700 mb-2">
-              {mainArticle.category}
-            </p>
-            <h2 className="text-3xl lg:text-4xl font-semibold font-serif text-gray-900 mb-3 leading-tight transition-colors duration-200 group-hover:text-[#0F766E]">
-              {mainArticle.title}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {getExcerpt(mainArticle.content)}
-            </p>
-            <p className="text-xs font-semibold uppercase text-gray-500">
-              By{" "}
-              {mainArticle.author?.name ||
-                mainArticle.author?.email ||
-                "Anonymous"}{" "}
-            </p>
-          </Link>
-
-          {/* Right Column - Latest Articles */}
-          <div className="lg:col-span-1">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-semibold font-serif text-gray-900">Latest</h3>
+          {/* Right Column - Company News / Articles */}
+          <div className="lg:col-span-3 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-semibold font-serif" style={{ color: "#00002F" }}>
+                Company news
+              </h3>
               <Link
                 to="/blog"
-                className="text-sm font-semibold text-blue-700 hover:underline"
+                className="text-sm font-semibold hover:underline"
+                style={{ color: "#0F766E" }}
               >
                 See All
               </Link>
             </div>
+
             <div className="space-y-4">
-              {latestArticles.map((article) => (
-                <Link
+              {bottomGridArticles.map((article) => (
+                <div
                   key={article._id}
-                  to={`/blog/${article._id}`}
-                  className="border-b border-gray-200 pb-4 last:border-b-0 cursor-pointer group block focus:outline-none"
+                  className="rounded-lg transition"
+                  style={{ border: "1px solid #E5E7EB" }}
                 >
-                  <p className="text-xs font-semibold uppercase text-gray-500 mb-1">
-                    {article.time}
-                  </p>
-                  <h4 className="font-semibold text-gray-800 transition-colors duration-200 group-hover:text-[#0F766E]">
-                    {article.title}
-                  </h4>
-                </Link>
+                  <Link
+                    to={`/blog/${article._id}`}
+                    className="flex gap-6 items-start cursor-pointer group focus:outline-none p-4"
+                  >
+                    {/* Left - Article Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold uppercase mb-2" style={{ color: "#0F766E" }}>
+                        {article.category}
+                      </p>
+                      <h4
+                        className="font-semibold font-serif text-lg mb-2 transition-colors duration-200 line-clamp-2 group-hover:opacity-80"
+                        style={{ color: "#00002F" }}
+                      >
+                        {article.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {getExcerpt(article.content, 120)}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gray-300 shrink-0" />
+                        <p className="text-xs text-gray-500">
+                          By{" "}
+                          {article.author?.name ||
+                            article.author?.email ||
+                            "Anonymous"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right - Article Image */}
+                    <div className="relative shrink-0 w-40 h-32 rounded-md overflow-hidden">
+                      {article.thumbnail?.url && !imageErrors[article._id] ? (
+                        <div
+                          className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                          style={{
+                            backgroundImage: `url(${article.thumbnail.url})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 w-full h-full bg-linear-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                          <span className="text-gray-600 text-xs font-medium px-2 text-center">
+                            No Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+
+                  {/* Follow Company Button */}
+                  <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={(e) => handleFollowClick(e, article._id)}
+                      className="text-sm font-medium px-4 py-2 rounded transition"
+                      style={{
+                        backgroundColor: followedArticles.has(article._id) ? "#0F766E" : "#FEFFED",
+                        color: followedArticles.has(article._id) ? "#FEFFED" : "#00002F",
+                        border: `1px solid ${followedArticles.has(article._id) ? "#0F766E" : "#E5E7EB"}`,
+                      }}
+                    >
+                      {followedArticles.has(article._id) ? "Following" : "Follow company"}
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Grid */}
-        <div className="mt-16 pt-12 border-t border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bottomGridArticles.map((article) => (
-              <Link
-                key={article._id}
-                to={`/blog/${article._id}`}
-                className="cursor-pointer group block focus:outline-none"
-              >
-                <div
-                  className="relative w-full overflow-hidden rounded-lg shadow-md mb-4"
-                  style={{ paddingBottom: "75%" }}
-                >
-                  {article.thumbnail?.url && !imageErrors[article._id] ? (
-                    <div
-                      className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={{
-                        backgroundImage: `url(${article.thumbnail.url})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                      <span className="text-gray-600 text-sm font-medium px-4 text-center">
-                        {article.title}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs font-semibold text-blue-700 uppercase mb-2">
-                  {article.category}
-                </p>
-                <h4 className="font-semibold font-serif text-gray-800 line-clamp-3 transition-colors duration-200 group-hover:text-[#0F766E]">
-                  {article.title}
-                </h4>
-              </Link>
-            ))}
           </div>
         </div>
       </div>
