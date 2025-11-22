@@ -425,7 +425,7 @@ const PricingPage = () => {
                     <p className="text-2xl font-bold text-brand-dark">Custom</p>
                   )}
                 </div>
-                <p className="text-gray-600 text-center text-sm mb-8 min-h-[3rem]">
+                <p className="text-gray-600 text-center text-sm mb-8 min-h-12">
                   {plan.description}
                 </p>
                 <button
@@ -438,7 +438,7 @@ const PricingPage = () => {
                 >
                   {plan.cta}
                 </button>
-                <div className="mt-8 pt-6 border-t border-gray-200 flex-grow">
+                <div className="mt-8 pt-6 border-t border-gray-200 grow">
                   {plan.featuresIntro && (
                     <p className="font-semibold text-sm mb-4 text-gray-600">
                       {plan.featuresIntro}

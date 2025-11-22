@@ -79,7 +79,7 @@ function AppInner() {
   return (
     <div className="bg-white text-brand-text font-sans flex flex-col min-h-screen">
       <Header currentUser={currentUser} onLogout={handleLogout} />
-      <main className="grow pt-32">
+      <main className="grow pt-22">
         <Routes>
           <Route
             path="/"
