@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { CheckMarkIcon, BrainIcon } from "./icons/Icons";
 import PaymentGatewayPage from "./PaymentGatewayPage";
 import OfferPopup from "./OfferPopUp";
@@ -38,29 +39,21 @@ const featureData = [
         values: ["Unlimited", "Unlimited", "Unlimited"],
       },
       { name: "File uploads", values: ["Unlimited", "Unlimited", "Unlimited"] },
-      { name: "Page history", values: ["30 days", "90 days", "Unlimited"] },
-    ],
-  },
-  {
-    category: "Sharing & collaboration",
-    features: [
-      { name: "Guest seats", values: ["100", "250", "Starting at 250"] },
-      { name: "Teamspaces (open & closed)", values: [true, true, true] },
     ],
   },
 ];
 
-const faqsData = [
-  {
-    question: "What is a 'Core Group'?",
-    answer:
-      "A Core Group is your personal board of directors. It's a curated group of 8 non-competing founders at a similar stage of growth, led by a professional executive coach.",
-  },
-  {
-    question: "Can I switch plans later?",
-    answer: "Absolutely. You can upgrade or downgrade your plan at any time.",
-  },
-];
+// const faqsData = [
+//   {
+//     question: "What is a 'Core Group'?",
+//     answer:
+//       "A Core Group is your personal board of directors. It's a curated group of 8 non-competing founders at a similar stage of growth, led by a professional executive coach.",
+//   },
+//   {
+//     question: "Can I switch plans later?",
+//     answer: "Absolutely. You can upgrade or downgrade your plan at any time.",
+//   },
+// ];
 
 const FaqItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -112,6 +105,7 @@ const PricingPage = () => {
   const headerRef = useRef(null);
   const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const navigate = useNavigate();
   const [showOffer, setShowOffer] = useState(false);
 
   useEffect(() => {
@@ -151,16 +145,14 @@ const PricingPage = () => {
     };
   }, []);
 
-  const handleCtaClick = (plan) => {
+  const handleCtaClick = (planKey, plan) => {
+    // navigate to payment (Stripe checkout) and pass planKey in router state and query
     if (plan.price && plan.price.quarterly > 0) {
-      setSelectedPlan({
-        name: plan.name,
-        price: plan.price.quarterly,
-        billingCycle: "quarterly",
-        articlesPerQuarter: plan.articlesPerQuarter,
+      // include plan in query so the page works even if state is lost
+      navigate(`/payment?plan=${encodeURIComponent(planKey)}`, {
+        state: { planKey },
       });
-      setShowPaymentGateway(true);
-      document.body.style.overflow = "hidden";
+      console.debug("Navigating to payment for plan:", planKey);
     } else {
       alert("Contact us for Enterprise plan");
     }
@@ -185,9 +177,8 @@ const PricingPage = () => {
         featuresIntro: "Everything in Free, plus:",
         features: [
           "Full access to all articles & resources",
-          "Access to digital community (Slack)",
+
           "Member directory access",
-          "Priority access to all events & workshops",
         ],
         aiTitle: "Member Perks",
         aiFeatures: [
@@ -203,15 +194,10 @@ const PricingPage = () => {
         features: [
           "Placement in a curated Core Group",
           "Monthly facilitated peer group sessions",
-          "Private communication channels",
-          "Direct access to an executive facilitator",
           "Annual in-person retreat",
         ],
         aiTitle: "Enhanced Privileges",
-        aiFeatures: [
-          "Personalized growth plan",
-          "Priority support",
-        ],
+        aiFeatures: ["Personalized growth plan", "Priority support"],
         popular: true,
       },
       enterprise: {
@@ -392,7 +378,7 @@ const PricingPage = () => {
       <section className="py-10">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-5xl mx-auto">
-            {Object.values(plans).map((plan) => (
+            {Object.entries(plans).map(([planKey, plan]) => (
               <div
                 key={plan.name}
                 className={`bg-white rounded-2xl p-8 flex flex-col h-full ${
@@ -417,9 +403,6 @@ const PricingPage = () => {
                       <p className="text-5xl font-extrabold text-brand-dark">
                         ${plan.price.quarterly}
                       </p>
-                      <p className="text-gray-500 text-sm">
-                        per member, per quarter
-                      </p>
                     </div>
                   ) : (
                     <p className="text-2xl font-bold text-brand-dark">Custom</p>
@@ -429,7 +412,7 @@ const PricingPage = () => {
                   {plan.description}
                 </p>
                 <button
-                  onClick={() => handleCtaClick(plan)}
+                  onClick={() => handleCtaClick(planKey, plan)}
                   className={`w-full py-3 rounded-lg font-semibold transition-colors ${
                     plan.popular
                       ? "bg-brand-dark text-black hover:bg-gray-800 hover:text-white border"
@@ -475,53 +458,6 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-5xl font-semibold text-brand-dark">
-              Member Benefits
-            </h2>
-            <p className="text-lg text-gray-500 mt-2">Insider Sneak-peaks</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 pl-14 pr-10 gap-x-12 gap-y-12">
-            <div>
-              <BenefitItem
-                title={benefitsCol1[0].title}
-                description={benefitsCol1[0].description}
-              />
-              <div className="h-12"></div>
-              <BenefitItem
-                title={benefitsCol1[1].title}
-                description={benefitsCol1[1].description}
-              />
-            </div>
-            <div>
-              <BenefitItem
-                title={benefitsCol2[0].title}
-                description={benefitsCol2[0].description}
-              />
-              <div className="h-12"></div>
-              <BenefitItem
-                title={benefitsCol2[1].title}
-                description={benefitsCol2[1].description}
-              />
-            </div>
-            <div>
-              <BenefitItem
-                title={benefitsCol3[0].title}
-                description={benefitsCol3[0].description}
-              />
-              <div className="h-12"></div>
-              <BenefitItem
-                title={benefitsCol3[1].title}
-                description={benefitsCol3[1].description}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-4xl font-bold text-center mb-12">
           Plans and features
@@ -538,10 +474,14 @@ const PricingPage = () => {
                 <div className="col-span-1"></div>
                 {plansData.map((plan, index) => (
                   <div key={index} className="text-center px-2">
-                    <h3 className="font-bold text-lg text-brand-dark">{plan.name}</h3>
+                    <h3 className="font-bold text-lg text-brand-dark">
+                      {plan.name}
+                    </h3>
                     <p className="text-sm text-gray-600 mt-1">
                       <span className="font-bold text-black">{plan.price}</span>
-                      {plan.period && <span className="text-xs block">{plan.period}</span>}
+                      {plan.period && (
+                        <span className="text-xs block">{plan.period}</span>
+                      )}
                     </p>
                     <button className="mt-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm shadow-sm">
                       {plan.cta}
@@ -562,14 +502,19 @@ const PricingPage = () => {
                     <div
                       key={feature.name}
                       className={`grid grid-cols-4 gap-x-4 items-center py-4 px-6 hover:bg-gray-50 transition-colors ${
-                        idx !== categoryData.features.length - 1 ? "border-b border-gray-100" : ""
+                        idx !== categoryData.features.length - 1
+                          ? "border-b border-gray-100"
+                          : ""
                       }`}
                     >
                       <div className="col-span-1 text-sm text-gray-800 font-medium pr-4">
                         <span>{feature.name}</span>
                       </div>
                       {feature.values.map((value, index) => (
-                        <div key={index} className="col-span-1 flex justify-center">
+                        <div
+                          key={index}
+                          className="col-span-1 flex justify-center"
+                        >
                           {renderFeatureValue(value)}
                         </div>
                       ))}
@@ -581,19 +526,6 @@ const PricingPage = () => {
           </div>
         </div>
       </div>
-
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6 max-w-3xl">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-4xl font-semibold text-brand-dark">
-              Questions & answers
-            </h2>
-          </div>
-          {faqsData.map((faq, index) => (
-            <FaqItem key={index} question={faq.question} answer={faq.answer} />
-          ))}
-        </div>
-      </section>
     </div>
   );
 };

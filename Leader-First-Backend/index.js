@@ -9,6 +9,7 @@ import billingRoute from "./routes/billing.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import donationRoutes from "./routes/donation.js";
 import adminRoute from "./routes/adminRoutes.js";
+import stripeWebhookRouter from "./routes/stripeWebhook.js";
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.use("/billing", billingRoute);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/donations", donationRoutes);
 app.use("/api/admin", adminRoute);
+app.use("/api/stripe", stripeWebhookRouter);
 
 // 9. 404 handler
 app.use((req, res) => {

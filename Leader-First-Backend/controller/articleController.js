@@ -21,8 +21,6 @@ const createArticle = async (req, res) => {
         .json({ message: "Title, content and category are required" });
     }
 
-    // Author can only start in draft or pending
-    // Admin may create directly as published if you want
     let initialStatus = "draft";
     const allowedForAuthor = ["draft", "pending"];
     const allowedForAdmin = ["draft", "pending", "published"];
@@ -40,13 +38,14 @@ const createArticle = async (req, res) => {
       thumbnail,
       images,
       author: req.user._id,
-      leaderFeatured: leaderFeatured || null, // NEW: optional featured leader
+      leaderFeatured: leaderFeatured || null,
       status: initialStatus,
       publishedAt: initialStatus === "published" ? new Date() : null,
     });
 
     res.status(201).json(article);
   } catch (err) {
+    console.error("createArticle error:", err); // add this
     res.status(500).json({ message: "Failed to create article" });
   }
 };
@@ -206,8 +205,10 @@ const getPublishedArticles = async (req, res) => {
       .sort({ publishedAt: -1, createdAt: -1 })
       .populate("author", "email name")
       .populate("leaderFeatured", "name"); // optional populate
+
     res.json(articles);
   } catch (err) {
+    console.error("getPublishedArticles error:", err); // add this
     res.status(500).json({ message: "Failed to load articles" });
   }
 };

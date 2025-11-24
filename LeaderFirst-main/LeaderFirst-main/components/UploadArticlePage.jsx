@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -42,7 +42,6 @@ const PaywallModal = ({ open, onClose, onUpgrade }) => {
   );
 };
 
-// MenuBar Component (UI unchanged)
 const MenuBar = React.memo(({ editor, onImageSelect }) => {
   if (!editor) return null;
   return (
@@ -164,6 +163,7 @@ const MenuBar = React.memo(({ editor, onImageSelect }) => {
         <input
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={onImageSelect}
         />
@@ -196,19 +196,24 @@ const MenuBar = React.memo(({ editor, onImageSelect }) => {
   );
 });
 
-// Main Component (UI unchanged)
 const UploadArticlePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const token = localStorage.getItem("token");
   const user = token ? JSON.parse(localStorage.getItem("user") || "{}") : null;
-  const isAdmin = user?.role === "admin";
+  const role = user?.role;
+  const isAdmin = role === "admin";
+  const isAuthor = role === "author";
 
-  // State
+  const searchParams = new URLSearchParams(location.search);
+  const editId = searchParams.get("edit");
+
   const [title, setTitle] = useState("");
   const [labels, setLabels] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
-  const [additionalImages, setAdditionalImages] = useState([]); // For multiple additional images
+  const [additionalImages, setAdditionalImages] = useState([]);
   const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
@@ -217,19 +222,22 @@ const UploadArticlePage = () => {
   const [processingDocx, setProcessingDocx] = useState(false);
   const [allArticles, setAllArticles] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  // Featured leader (optional)
+  const [selectedLeader, setSelectedLeader] = useState(""); // manual text or ID
+
   const [publishedAt] = useState(() => {
     const now = new Date();
     return now.toLocaleString("en-GB", { hour12: false }).replace(",", "");
   });
-  const [showPaywall, setShowPaywall] = useState(false);
 
   const contentImageInputRef = useRef(null);
   const thumbnailInputRef = useRef(null);
-  const additionalImagesInputRef = useRef(null); // For additional images
+  const additionalImagesInputRef = useRef(null);
   const docxInputRef = useRef(null);
   const hasLoadedArticles = useRef(false);
 
-  // Avoid duplicate extension names: only StarterKit + Underline + Image
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
@@ -245,28 +253,62 @@ const UploadArticlePage = () => {
     content: "",
   });
 
-  // Fetch articles ONLY ONCE
+  // Fetch own / all articles for sidebar
   useEffect(() => {
-    if (!isAdmin || !token || hasLoadedArticles.current) return;
+    if ((!isAdmin && !isAuthor) || !token || hasLoadedArticles.current) return;
 
     hasLoadedArticles.current = true;
     (async () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE;
-        const res = await fetch(`${baseUrl}/api/articles`, {
+        const res = await fetch(`${baseUrl}/api/articles/mine`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
-          setAllArticles(data.data || []);
+          setAllArticles(Array.isArray(data) ? data : data.data || []);
         }
       } catch (err) {
         console.error("Error fetching articles:", err);
       }
     })();
-  }, [isAdmin, token]);
+  }, [isAdmin, isAuthor, token]);
 
-  // Upload image to server (same endpoint as thumbnail)
+  // Load article for editing
+  useEffect(() => {
+    if (!editId || !token) return;
+
+    (async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE;
+        const res = await fetch(`${baseUrl}/api/articles/secure/${editId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.message || "Failed to load article for editing.");
+          return;
+        }
+
+        setTitle(data.title || "");
+        setLabels(data.category || "");
+        editor?.commands.setContent(data.content || "");
+        if (data.thumbnail?.url) {
+          setThumbnailPreview(data.thumbnail.url);
+        }
+        if (data.leaderFeatured) {
+          setSelectedLeader(
+            typeof data.leaderFeatured === "string"
+              ? data.leaderFeatured
+              : data.leaderFeatured._id || ""
+          );
+        }
+      } catch (err) {
+        setError("Failed to load article for editing.");
+      }
+    })();
+  }, [editId, token, editor]);
+
   const uploadImageToServer = async (blobOrFile, name) => {
     try {
       const baseUrl = import.meta.env.VITE_API_BASE;
@@ -299,18 +341,15 @@ const UploadArticlePage = () => {
     }
   };
 
-  // Helpers
   const dataUrlToBlob = async (dataUrl) => {
     const res = await fetch(dataUrl);
     return await res.blob();
   };
+
   const replaceAllSafe = (html, needle, replacement) =>
     html.split(needle).join(replacement);
 
-  // DOCX processing without Buffer: use base64/data: URL from Mammoth
   const processDocxWithImages = async (arrayBuffer) => {
-    console.log("🔄 Starting DOCX processing with image upload...");
-
     let index = 0;
     const jobs = [];
     const placeholderToUrl = new Map();
@@ -323,18 +362,17 @@ const UploadArticlePage = () => {
           const placeholder = `__IMAGE_${index}__`;
 
           try {
-            const base64 = await image.read("base64"); // no Buffer path
+            const base64 = await image.read("base64");
             const mime = image.contentType || "image/png";
             const dataUrl = `data:${mime};base64,${base64}`;
 
-            // async upload job
             const job = (async () => {
               try {
                 const blob = await dataUrlToBlob(dataUrl);
                 const ext = (mime.split("/")[1] || "png").toLowerCase();
                 const name = `docx-img-${Date.now()}-${index}.${ext}`;
                 const url = await uploadImageToServer(blob, name);
-                placeholderToUrl.set(placeholder, url || dataUrl); // fallback to dataUrl
+                placeholderToUrl.set(placeholder, url || dataUrl);
               } catch (e) {
                 console.error("Upload job error:", e);
                 placeholderToUrl.set(placeholder, dataUrl);
@@ -354,7 +392,6 @@ const UploadArticlePage = () => {
       }
     );
 
-    console.log(`⏳ Waiting for ${jobs.length} image(s) to upload...`);
     await Promise.all(jobs);
 
     let finalHtml = result.value || "";
@@ -362,11 +399,9 @@ const UploadArticlePage = () => {
       finalHtml = replaceAllSafe(finalHtml, ph, url);
     });
 
-    console.log("✅ DOCX processing complete!");
     return { html: finalHtml, imageCount: placeholderToUrl.size };
   };
 
-  // Handle DOCX file
   const handleDocxFile = async (file) => {
     if (!file || !file.name.endsWith(".docx")) {
       setError("❌ Please select a .docx file");
@@ -398,7 +433,6 @@ const UploadArticlePage = () => {
     }
   };
 
-  // Manual image selection
   const handleContentImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -410,7 +444,6 @@ const UploadArticlePage = () => {
     if (contentImageInputRef.current) contentImageInputRef.current.value = "";
   };
 
-  // Thumbnail
   const handleThumbnailChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -420,32 +453,29 @@ const UploadArticlePage = () => {
     reader.readAsDataURL(file);
   };
 
-  // Additional Images Handler
   const handleAdditionalImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Limit to 5 additional images
     const limitedFiles = files.slice(0, 5);
     setAdditionalImages((prev) => [...prev, ...limitedFiles].slice(0, 5));
 
-    // Generate previews
     limitedFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAdditionalImagePreviews((prev) => [...prev, reader.result].slice(0, 5));
+        setAdditionalImagePreviews((prev) =>
+          [...prev, reader.result].slice(0, 5)
+        );
       };
       reader.readAsDataURL(file);
     });
   };
 
-  // Remove additional image
   const handleRemoveAdditionalImage = (index) => {
     setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
     setAdditionalImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Drag and drop
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -469,12 +499,6 @@ const UploadArticlePage = () => {
 
   const handleDragLeave = useCallback(() => setIsDragOver(false), []);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) handleDocxFile(file);
-  };
-
-  // Submit (UI unchanged)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -489,17 +513,12 @@ const UploadArticlePage = () => {
       setError("❌ Please fill: Title, Labels, and Content");
       return;
     }
-    // if (!thumbnailFile) {
-    //   setError("❌ Please upload a thumbnail image");
-    //   return;
-    // }
 
     setIsUploading(true);
 
     try {
       const baseUrl = import.meta.env.VITE_API_BASE;
-      
-      // Upload thumbnail
+
       let thumbnailData = {};
       if (thumbnailFile) {
         const thumbFormData = new FormData();
@@ -514,7 +533,6 @@ const UploadArticlePage = () => {
         }
       }
 
-      // Upload additional images
       const uploadedImages = [];
       for (const imageFile of additionalImages) {
         const imgFormData = new FormData();
@@ -534,24 +552,34 @@ const UploadArticlePage = () => {
         }
       }
 
-      const res = await fetch(`${baseUrl}/api/articles`, {
-        method: "POST",
+      const baseBody = {
+        title: titleValue,
+        content,
+        category: labelsValue,
+        thumbnail: thumbnailData.url
+          ? {
+              url: thumbnailData.url,
+              publicId: thumbnailData.publicId,
+              alt: titleValue,
+            }
+          : undefined,
+        images: uploadedImages,
+        status: isAdmin ? "published" : "pending",
+        leaderFeatured: selectedLeader || undefined,
+      };
+
+      const url = editId
+        ? `${baseUrl}/api/articles/${editId}`
+        : `${baseUrl}/api/articles`;
+      const method = editId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title: titleValue,
-          content,
-          category: labelsValue,
-          thumbnail: thumbnailData.url ? {
-            url: thumbnailData.url,
-            publicId: thumbnailData.publicId,
-            alt: titleValue,
-          } : undefined,
-          images: uploadedImages, // Add the additional images array
-          publishedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(baseBody),
       });
 
       const data = await res.json();
@@ -570,16 +598,25 @@ const UploadArticlePage = () => {
       }
 
       if (res.ok) {
-        setSuccess("✅ Article published successfully!");
+        setSuccess(
+          isAdmin
+            ? "✅ Article published successfully!"
+            : "✅ Article sent for review!"
+        );
         setTitle("");
         setLabels("");
         setThumbnailFile(null);
         setThumbnailPreview("");
         setAdditionalImages([]);
         setAdditionalImagePreviews([]);
+        setSelectedLeader("");
         editor?.commands.setContent("");
-        setAllArticles((prev) => [data.data, ...prev]);
-        setTimeout(() => navigate("/upload-article"), 1500);
+        const created = data.data || data;
+        setAllArticles((prev) => (created ? [created, ...prev] : prev));
+        setTimeout(
+          () => navigate(isAdmin ? "/dashboard/admin" : "/dashboard/author"),
+          1500
+        );
       } else {
         setError(`${data.message || "Failed to publish"}`);
       }
@@ -590,11 +627,109 @@ const UploadArticlePage = () => {
     }
   };
 
-  if (!isAdmin) {
+  const handleSaveDraft = async () => {
+    setError("");
+    setSuccess("");
+
+    const content = editor?.getHTML() || "";
+    const plainTextContent = editor?.getText().trim() || "";
+    const titleValue = title.trim();
+    const labelsValue = labels.trim();
+
+    if (!titleValue || !labelsValue || !plainTextContent) {
+      setError("❌ Please fill: Title, Labels, and Content");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE;
+
+      let thumbnailData = {};
+      if (thumbnailFile) {
+        const thumbFormData = new FormData();
+        thumbFormData.append("thumbnail", thumbnailFile);
+        const thumbRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: thumbFormData,
+        });
+        if (thumbRes.ok) {
+          thumbnailData = await thumbRes.json();
+        }
+      }
+
+      const uploadedImages = [];
+      for (const imageFile of additionalImages) {
+        const imgFormData = new FormData();
+        imgFormData.append("thumbnail", imageFile);
+        const imgRes = await fetch(`${baseUrl}/api/upload/thumbnail`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: imgFormData,
+        });
+        if (imgRes.ok) {
+          const imgData = await imgRes.json();
+          uploadedImages.push({
+            url: imgData.url,
+            publicId: imgData.publicId,
+            alt: titleValue,
+          });
+        }
+      }
+
+      const baseBody = {
+        title: titleValue,
+        content,
+        category: labelsValue,
+        thumbnail: thumbnailData.url
+          ? {
+              url: thumbnailData.url,
+              publicId: thumbnailData.publicId,
+              alt: titleValue,
+            }
+          : undefined,
+        images: uploadedImages,
+        status: "draft",
+        leaderFeatured: selectedLeader || undefined,
+      };
+
+      const url = editId
+        ? `${baseUrl}/api/articles/${editId}`
+        : `${baseUrl}/api/articles`;
+      const method = editId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(baseBody),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSuccess("✅ Draft saved successfully!");
+        const created = data.data || data;
+        setAllArticles((prev) => (created ? [created, ...prev] : prev));
+      } else {
+        setError(data.message || "Failed to save draft");
+      }
+    } catch (err) {
+      setError(`Error: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  if (!isAdmin && !isAuthor) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-red-100 rounded text-center text-red-700">
         <p className="font-bold">Access Denied</p>
-        <p>Only admins can upload articles.</p>
+        <p>Only authors and admins can upload articles.</p>
       </div>
     );
   }
@@ -607,7 +742,9 @@ const UploadArticlePage = () => {
         <div className="flex items-center justify-between px-8 py-4 border-b bg-white shadow-sm sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() =>
+                navigate(isAdmin ? "/dashboard/admin" : "/dashboard/author")
+              }
               className="text-gray-600 hover:text-gray-900 text-2xl transition"
               title="Back"
             >
@@ -618,6 +755,16 @@ const UploadArticlePage = () => {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            {isAuthor && (
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isUploading || processingDocx}
+                className="px-4 py-1.5 text-gray-700 hover:bg-gray-100 rounded text-sm font-medium transition"
+              >
+                💾 Save draft
+              </button>
+            )}
             <button
               onClick={() => setShowPreview(true)}
               className="px-4 py-1.5 text-gray-700 hover:bg-gray-100 rounded text-sm font-medium transition"
@@ -629,7 +776,13 @@ const UploadArticlePage = () => {
               disabled={isUploading || processingDocx}
               className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded px-6 py-1.5 font-semibold text-sm shadow-md transition"
             >
-              {isUploading ? "Publishing..." : "Publish"}
+              {isAdmin
+                ? isUploading
+                  ? "Publishing..."
+                  : "Publish"
+                : isUploading
+                ? "Sending..."
+                : "Send for review"}
             </button>
           </div>
         </div>
@@ -738,17 +891,24 @@ const UploadArticlePage = () => {
               onClick={() => setShowPreview(true)}
               className="flex items-center gap-1.5 flex-1 bg-gray-100 border border-gray-300 px-3 py-2 rounded hover:bg-gray-200 text-gray-700 font-medium text-sm transition"
             >
-              👁️ Preview
+              Preview
             </button>
             <button
               onClick={handleSubmit}
               disabled={isUploading || processingDocx}
               className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-3 py-2 rounded font-semibold text-sm shadow-md transition"
             >
-              Publish
+              {isAdmin
+                ? isUploading
+                  ? "Publishing..."
+                  : "Publish"
+                : isUploading
+                ? "Sending..."
+                : "Send for review"}
             </button>
           </div>
 
+          {/* Thumbnail */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Thumbnail Image
@@ -776,12 +936,14 @@ const UploadArticlePage = () => {
             )}
           </div>
 
+          {/* Additional Images */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Additional Images (Optional)
             </label>
             <p className="text-xs text-gray-500 mb-2">
-              First image = cover. Second image appears after scrolling 1.5x screen height. Max 5 images.
+              First image = cover. Second image appears after scrolling 1.5x
+              screen height. Max 5 images.
             </p>
             <input
               ref={additionalImagesInputRef}
@@ -797,7 +959,9 @@ const UploadArticlePage = () => {
               disabled={additionalImages.length >= 5}
               className="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-200 disabled:text-gray-400 text-blue-800 rounded font-medium text-sm transition"
             >
-              {additionalImages.length >= 5 ? "Max 5 Images" : `Add Images (${additionalImages.length}/5)`}
+              {additionalImages.length >= 5
+                ? "Max 5 Images"
+                : `Add Images (${additionalImages.length}/5)`}
             </button>
             {additionalImagePreviews.length > 0 && (
               <div className="grid grid-cols-2 gap-2 mt-2">
@@ -816,7 +980,11 @@ const UploadArticlePage = () => {
                       ✕
                     </button>
                     <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                      {index === 0 ? "Cover" : index === 1 ? "Scroll" : `#${index + 1}`}
+                      {index === 0
+                        ? "Cover"
+                        : index === 1
+                        ? "Scroll"
+                        : `#${index + 1}`}
                     </span>
                   </div>
                 ))}
@@ -824,6 +992,7 @@ const UploadArticlePage = () => {
             )}
           </div>
 
+          {/* Category */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Category
@@ -851,6 +1020,21 @@ const UploadArticlePage = () => {
             </select>
           </div>
 
+          {/* Featured Leader (optional, manual entry) */}
+          <div className="space-y-2">
+            <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
+              Featured Leader (optional)
+            </label>
+            <input
+              type="text"
+              value={selectedLeader}
+              onChange={(e) => setSelectedLeader(e.target.value)}
+              placeholder="Enter Leader ID (User _id)"
+              className="w-full border-2 border-gray-300 bg-white focus:ring-2 focus:ring-brand-teal focus:border-brand-teal px-3 py-2 text-sm rounded-md transition"
+            />
+          </div>
+
+          {/* Published on */}
           <div className="space-y-1">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Published on
@@ -858,6 +1042,7 @@ const UploadArticlePage = () => {
             <p className="text-sm text-gray-700 font-medium">{publishedAt}</p>
           </div>
 
+          {/* Uploaded Articles */}
           <div className="space-y-2">
             <label className="block font-bold text-xs text-gray-700 uppercase tracking-wider">
               Uploaded Articles ({allArticles.length})
@@ -868,14 +1053,20 @@ const UploadArticlePage = () => {
                   <button
                     key={article._id}
                     type="button"
-                    onClick={() => navigate(`/blog/${article._id}`)}
+                    onClick={() =>
+                      article.status === "published"
+                        ? navigate(`/blog/${article._id}`)
+                        : navigate(`/upload-article?edit=${article._id}`)
+                    }
                     className="w-full text-left p-2.5 hover:bg-gray-100 rounded transition group"
                   >
                     <p className="text-xs font-semibold text-gray-800 group-hover:text-brand-teal truncate">
                       {article.title}
                     </p>
                     <p className="text-xs text-gray-400 truncate">
-                      /blog-post-{article._id.slice(0, 8)}
+                      {article.status === "published"
+                        ? `/blog-post-${article._id.slice(0, 8)}`
+                        : `Draft • ${article._id.slice(0, 8)}`}
                     </p>
                   </button>
                 ))
@@ -898,7 +1089,7 @@ const UploadArticlePage = () => {
         labels={labels}
         publishedAt={publishedAt}
         author={user?.email || "Anonymous"}
-        images={additionalImagePreviews} // Pass preview images
+        images={additionalImagePreviews}
       />
       <PaywallModal
         open={showPaywall}

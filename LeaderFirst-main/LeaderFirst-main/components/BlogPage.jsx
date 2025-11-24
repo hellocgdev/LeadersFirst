@@ -104,18 +104,14 @@ const BlogPage = () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE;
 
-        // Build API URL with category filter if present
-        let apiUrl = `${baseUrl}/api/articles`;
-
-        if (category) {
-          // Only fetch articles from that specific category
-          apiUrl = `${baseUrl}/api/articles/category/${category}`;
-        }
+        // ✅ Correct: use query param, not /category/...
+        const apiUrl = category
+          ? `${baseUrl}/api/articles?category=${encodeURIComponent(category)}`
+          : `${baseUrl}/api/articles`;
 
         console.log("📡 Fetching from:", apiUrl);
 
         const res = await fetch(apiUrl);
-
         if (!res.ok) {
           throw new Error("Failed to fetch articles");
         }
@@ -123,7 +119,8 @@ const BlogPage = () => {
         const data = await res.json();
         console.log("✅ Fetched articles:", data);
 
-        setPosts(data.data || []);
+        // Backend currently returns plain array, not { data: ... }
+        setPosts(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
         console.error("❌ Fetch error:", err);
         setError(err.message || "Failed to load articles");

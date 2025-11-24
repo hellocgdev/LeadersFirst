@@ -6,7 +6,7 @@ import TrendingStrip from "./TrendingStrip";
 import EditorsPicks from "./EditorsPicks";
 import TodaysMix from "./TodaysMix";
 import Featured from "./Featured";
-import NewsLetterBand from "./NewsLetterBand";
+import NewsLetterBand from "./NewsletterBand";
 
 const HomePage = ({ posts, currentUser }) => {
   const [showOffer, setShowOffer] = useState(false);
@@ -46,7 +46,7 @@ const HomePage = ({ posts, currentUser }) => {
 
   return (
     <main>
-      <Insights />
+      <Insights posts={posts} />
       <EditorsPicks articles={editorsPickArticles} />
       <TodaysMix articles={trendingArticles} />
       <Featured articles={trendingArticles} />
@@ -58,5 +58,5 @@ const HomePage = ({ posts, currentUser }) => {
       )}
     </main>
   );
-}
-export default HomePage
+};
+export default HomePage;

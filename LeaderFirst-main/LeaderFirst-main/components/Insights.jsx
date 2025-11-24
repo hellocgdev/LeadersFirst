@@ -38,7 +38,7 @@ const getExcerpt = (htmlContent, maxLength = 150) => {
   return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
 };
 
-const Insights = () => {
+const Insights = ({ posts: propPosts = null }) => {
   const [articles, setArticles] = useState([]);
   const [shuffledArticles, setShuffledArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +55,26 @@ const Insights = () => {
     { name: "Narayana Murthy", position: "CPO - Infosys", image: "NM.jpeg" },
   ];
 
-  // Fetch articles from API
+  // Use posts provided by parent when available, otherwise fetch from API
   useEffect(() => {
+    let cancelled = false;
+
+    const applyArticles = (src) => {
+      if (cancelled) return;
+      setArticles(src);
+      if (src.length >= 7) setShuffledArticles(shuffleArray(src));
+      else setShuffledArticles(src);
+      setLoading(false);
+    };
+
+    if (propPosts && Array.isArray(propPosts)) {
+      // parent provided posts — use them and skip fetching
+      applyArticles(propPosts);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const fetchArticles = async () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE;
@@ -65,25 +83,24 @@ const Insights = () => {
         const data = await res.json();
         console.log("Fetched articles:", data);
 
-        if (data.data && Array.isArray(data.data)) {
-          setArticles(data.data);
-
-          if (data.data.length >= 7) {
-            setShuffledArticles(shuffleArray(data.data));
-          } else {
-            setShuffledArticles(data.data);
-          }
-        }
+        // Accept either array or { data: [...] }
+        const src = Array.isArray(data) ? data : data?.data || [];
+        applyArticles(src);
       } catch (error) {
         console.error("Error fetching articles:", error);
-        setError("Failed to load articles");
+        if (!cancelled) setError("Failed to load articles");
       } finally {
-        setLoading(false);
+        // loading flag handled in applyArticles for success; ensure false on error
+        if (!cancelled && error) setLoading(false);
       }
     };
 
     fetchArticles();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [propPosts]);
 
   // Handle image error
   const handleImageError = (articleId) => {
@@ -152,8 +169,9 @@ const Insights = () => {
           <div className="text-xl text-gray-600">
             {shuffledArticles.length === 0
               ? "No articles published yet."
-              : `Only ${shuffledArticles.length} article${shuffledArticles.length > 1 ? "s" : ""
-              } available. Need at least 7 for the full layout.`}
+              : `Only ${shuffledArticles.length} article${
+                  shuffledArticles.length > 1 ? "s" : ""
+                } available. Need at least 7 for the full layout.`}
           </div>
         </div>
       </section>
@@ -201,14 +219,23 @@ const Insights = () => {
         {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column - Featured Leaders (thinner) */}
-          <div className="lg:col-span-2 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
-            <h3 className="text-xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
+          <div
+            className="lg:col-span-2 rounded-lg p-6"
+            style={{ border: "1px solid #E5E7EB" }}
+          >
+            <h3
+              className="text-xl font-semibold font-serif mb-6"
+              style={{ color: "#00002F" }}
+            >
               Featured leaders
             </h3>
             <div className="space-y-6">
               {/* Dummy Featured Leaders */}
               {dummyLeaders.map((leader, index) => (
-                <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
+                <div
+                  key={index}
+                  className="border-b border-gray-200 pb-6 last:border-b-0"
+                >
                   <div className="flex flex-col items-center gap-3 text-center">
                     <img
                       src={`/${leader.image}`}
@@ -216,19 +243,28 @@ const Insights = () => {
                       className="w-16 h-16 rounded-full object-cover bg-gray-200"
                     />
                     <div className="w-full">
-                      <h4 className="font-semibold text-xs" style={{ color: "#00002F" }}>
+                      <h4
+                        className="font-semibold text-xs"
+                        style={{ color: "#00002F" }}
+                      >
                         {leader.name}
                       </h4>
-                      <p className="text-xs text-gray-600 line-clamp-2">{leader.position}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2">
+                        {leader.position}
+                      </p>
                     </div>
                   </div>
                   <button
                     onClick={(e) => handleFollowLeaderClick(e, index)}
                     className="mt-3 w-full text-xs font-medium border py-1.5 rounded transition"
                     style={{
-                      backgroundColor: followedLeaders.has(index) ? "#0F766E" : "#FEFFED",
+                      backgroundColor: followedLeaders.has(index)
+                        ? "#0F766E"
+                        : "#FEFFED",
                       color: followedLeaders.has(index) ? "#FEFFED" : "#00002F",
-                      border: `1px solid ${followedLeaders.has(index) ? "#0F766E" : "#E5E7EB"}`,
+                      border: `1px solid ${
+                        followedLeaders.has(index) ? "#0F766E" : "#E5E7EB"
+                      }`,
                     }}
                   >
                     {followedLeaders.has(index) ? "Following" : "Follow"}
@@ -239,9 +275,15 @@ const Insights = () => {
           </div>
 
           {/* Center Column - Company News / Articles */}
-          <div className="lg:col-span-7 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
+          <div
+            className="lg:col-span-7 rounded-lg p-6"
+            style={{ border: "1px solid #E5E7EB" }}
+          >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-semibold font-serif" style={{ color: "#00002F" }}>
+              <h3
+                className="text-2xl font-semibold font-serif"
+                style={{ color: "#00002F" }}
+              >
                 Company news
               </h3>
               <Link
@@ -266,7 +308,10 @@ const Insights = () => {
                   >
                     {/* Left - Article Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold uppercase mb-2" style={{ color: "#0F766E" }}>
+                      <p
+                        className="text-xs font-semibold uppercase mb-2"
+                        style={{ color: "#0F766E" }}
+                      >
                         {article.category}
                       </p>
                       <h4
@@ -307,12 +352,22 @@ const Insights = () => {
                       onClick={(e) => handleFollowClick(e, article._id)}
                       className="text-sm font-medium px-4 py-2 rounded transition"
                       style={{
-                        backgroundColor: followedArticles.has(article._id) ? "#0F766E" : "#FEFFED",
-                        color: followedArticles.has(article._id) ? "#FEFFED" : "#00002F",
-                        border: `1px solid ${followedArticles.has(article._id) ? "#0F766E" : "#E5E7EB"}`,
+                        backgroundColor: followedArticles.has(article._id)
+                          ? "#0F766E"
+                          : "#FEFFED",
+                        color: followedArticles.has(article._id)
+                          ? "#FEFFED"
+                          : "#00002F",
+                        border: `1px solid ${
+                          followedArticles.has(article._id)
+                            ? "#0F766E"
+                            : "#E5E7EB"
+                        }`,
                       }}
                     >
-                      {followedArticles.has(article._id) ? "Following" : "Follow company"}
+                      {followedArticles.has(article._id)
+                        ? "Following"
+                        : "Follow company"}
                     </button>
                   </div>
                 </div>
@@ -321,8 +376,14 @@ const Insights = () => {
           </div>
 
           {/* Right Column - Quick Reads */}
-          <div className="lg:col-span-3 rounded-lg p-6" style={{ border: "1px solid #E5E7EB" }}>
-            <h3 className="text-2xl font-semibold font-serif mb-6" style={{ color: "#00002F" }}>
+          <div
+            className="lg:col-span-3 rounded-lg p-6"
+            style={{ border: "1px solid #E5E7EB" }}
+          >
+            <h3
+              className="text-2xl font-semibold font-serif mb-6"
+              style={{ color: "#00002F" }}
+            >
               Quick reads
             </h3>
 
@@ -335,7 +396,10 @@ const Insights = () => {
                 >
                   {/* Read Time Badge */}
                   {article.readTime && (
-                    <p className="text-xs font-semibold uppercase mb-2" style={{ color: "#0F766E" }}>
+                    <p
+                      className="text-xs font-semibold uppercase mb-2"
+                      style={{ color: "#0F766E" }}
+                    >
                       {article.readTime} MIN READ
                     </p>
                   )}

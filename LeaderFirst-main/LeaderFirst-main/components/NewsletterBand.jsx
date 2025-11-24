@@ -1,7 +1,7 @@
 // src/components/NewsletterBand.jsx
 import React, { useState } from "react";
 
-const NewsletterBand = ({ onSubmit }) => {
+const NewsLetterBand = ({ onSubmit }) => {
   const [email, setEmail] = useState("");
   const [state, setState] = useState("idle");
   const [msg, setMsg] = useState("");
@@ -81,4 +81,4 @@ const NewsletterBand = ({ onSubmit }) => {
   );
 };
 
-export default NewsletterBand;
+export default NewsLetterBand;

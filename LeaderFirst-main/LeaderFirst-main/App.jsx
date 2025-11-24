@@ -27,6 +27,10 @@ import ReactGA from "react-ga4";
 import RephraserPage from "./components/RephraserPage";
 import DonationSection from "./components/CharityPage";
 import DonationSuccessPage from "./components/DonationSuccessPage";
+import AuthorDashboardPage from "./components/AuthorDashboardPage";
+import AdminDashboard from "./components/AdminDashboard";
+import PaymentPage from "./components/Payment";
+import StripeCheckoutPage from "./components/StripeCheckoutPage";
 
 // ReactGA.initialize("G-9FEM0FMWZY");
 // ReactGA.initialize("");
@@ -57,11 +61,23 @@ function AppInner() {
   const baseUrl = import.meta.env.VITE_API_BASE;
 
   useEffect(() => {
-    fetch(`${baseUrl}/api/articles`)
+    if (!baseUrl) {
+      // fallback to same-origin if base URL is not configured
+      console.warn("VITE_API_BASE is not set - using relative /api path");
+    }
+
+    fetch(`${baseUrl || ""}/api/articles`)
       .then((res) => res.json())
-      .then((data) => setPosts(data.data || []))
-      .catch(() => setPosts([]));
-  }, []);
+      .then((data) => {
+        // API may return either an array or an object with a `data` property.
+        const articles = Array.isArray(data) ? data : data?.data || [];
+        setPosts(articles);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch articles:", err);
+        setPosts([]);
+      });
+  }, [baseUrl]);
 
   function usePageTracking() {
     const location = useLocation();
@@ -104,10 +120,12 @@ function AppInner() {
           />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pricing-page" element={<PricingPage />} />
-          <Route path="/payment" element={<PaymentGatewayPage />} />
+          <Route path="/payment" element={<StripeCheckoutPage />} />
           <Route path="/rephrase" element={<RephraserPage />} />
           <Route path="/donations" element={<DonationSection />} />
           <Route path="/donation-success" element={<DonationSuccessPage />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/author-dashboard" element={<AuthorDashboardPage />} />
 
           {/* Pass the token prop here */}
           <Route path="*" element={<Navigate to="/" replace />} />

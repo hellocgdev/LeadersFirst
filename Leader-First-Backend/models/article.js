@@ -18,8 +18,8 @@ const articleSchema = new mongoose.Schema(
       required: true,
     },
     leaderFeatured: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Leader", // or "Leader" if using separate Leader schema
+      type: String,
+      // ref: "User", // or "Leader" if using separate Leader schema
       default: null, // Optional field
     },
     thumbnail: {
